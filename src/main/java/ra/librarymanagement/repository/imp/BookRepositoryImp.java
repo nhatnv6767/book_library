@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
@@ -97,20 +98,42 @@ public class BookRepositoryImp implements IBookRepository {
 
     @Override
     public boolean existsByIsbn(String isbn) {
+        // Create a CriteriaBuilder
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        // Return the number of books with the given ISBN
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        // SELECT COUNT(*) FROM books
         Root<Book> root = query.from(Book.class);
-        
-        return false;
+        // SELECT COUNT(*) FROM books WHERE isbn = :isbn
+        query.select(cb.count(root)).where(cb.equal(root.get("isbn"), isbn));
+        // If the number of books with the given ISBN is greater than 0, return true
+        return entityManager.createQuery(query).getSingleResult() > 0;
     }
 
     @Override
     public List<Book> findAvailableBooks() {
-        return List.of();
+        CriteriaUtil.Result<Book> result = CriteriaUtil.getResult(entityManager, Book.class);
+
+        // SELECT * FROM books WHERE available = true
+        Predicate availablePredicate = result.cb.equal(result.root.get("available"), true);
+        // SELECT * FROM books WHERE quantity > 0
+        Predicate quantityPredicate = result.cb.greaterThan(result.root.get("quantity"), 0);
+        // SELECT * FROM books WHERE status = 'AVAILABLE'
+        Predicate statusPredicate = result.cb.equal(result.root.get("status"), BookStatus.AVAILABLE);
+        // SELECT * FROM books WHERE available = true AND quantity > 0 AND status = 'AVAILABLE
+        result.query.where(result.cb.and(availablePredicate, quantityPredicate, statusPredicate));
+
+        return entityManager.createQuery(result.query).getResultList();
     }
 
     @Override
     public void updateQuantity(Long bookId, Integer quantity) {
-
+        Book book = entityManager.find(Book.class, bookId);
+        if (book != null) {
+            book.setQuantity(quantity);
+            book.setAvailable(quantity > 0);
+            book.setBookStatus(quantity > 0 ? BookStatus.AVAILABLE : BookStatus.OUT_OF_STOCK);
+            entityManager.merge(book);
+        }
     }
 }
