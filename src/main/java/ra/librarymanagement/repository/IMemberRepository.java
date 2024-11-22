@@ -26,7 +26,7 @@ public interface IMemberRepository {
 
     void update(Member member);
 
-    void delete(Member member);
+    void delete(Long id);
 
     boolean existsByMemberCode(String memberCode);
 
