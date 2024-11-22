@@ -25,12 +25,12 @@ public class BorrowRecord {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    @Column(name = "member")
+    // @Column(name = "member")
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
-    @Column(name = "book")
+    // @Column(name = "book")
     private Book book;
 
     @Column(name = "borrow_date", nullable = false)

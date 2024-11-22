@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-public class MemberRepository implements IMemberRepository {
+public class MemberRepositoryImp implements IMemberRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
