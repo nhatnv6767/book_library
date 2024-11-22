@@ -147,7 +147,11 @@ public class MemberServiceImp implements IMemberService {
     }
 
     @Override
+    @Transactional
     public void updateMemberStatus(Long memberId, MemberStatus status) {
-
+        Member member = findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member with ID " + memberId + " does not exist"));
+        member.setStatus(status);
+        memberRepository.update(member);
     }
 }
