@@ -43,7 +43,7 @@ public class BorrowRecord {
     private LocalDateTime returnDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "borrow_status", nullable = false)
     private BorrowStatus status;
 
     @Column(name = "fine", nullable = false, precision = 10, scale = 2)
