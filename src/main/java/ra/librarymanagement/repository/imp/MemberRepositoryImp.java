@@ -2,6 +2,8 @@ package ra.librarymanagement.repository.imp;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
+import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
 import ra.librarymanagement.model.member.MemberType;
@@ -128,5 +130,20 @@ public class MemberRepositoryImp implements IMemberRepository {
         // that means select * from members where status = ACTIVE
         result.query.where(result.cb.equal(result.root.get("status"), MemberStatus.ACTIVE));
         return entityManager.createQuery(result.query).getResultList();
+    }
+
+    @Override
+    public long countActiveBooksByMember(Long memberId) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<BorrowRecord> root = query.from(BorrowRecord.class);
+
+        // that means select count(*) from borrow_records where member_id = memberId and status = BORROWING
+        query.select(cb.count(root))
+                .where(cb.and(
+                        cb.equal(root.get("member").get("memberId"), memberId),
+                        cb.equal(root.get("status"), BorrowStatus.BORROWING)
+                ));
+        return entityManager.createQuery(query).getSingleResult();
     }
 }
