@@ -140,12 +140,12 @@ public class BookServiceImp implements IBookService {
     }
 
     @Override
-    public int countTotalBooks() {
+    public Long countTotalBooks() {
         return bookRepository.countTotalBooks();
     }
 
     @Override
-    public int countAvailableBooks() {
+    public Long countAvailableBooks() {
         return bookRepository.countAvailableBooks();
     }
 

@@ -33,8 +33,8 @@ public interface IBookRepository {
 
     void updateQuantity(Long bookId, Integer quantity);
 
-    int countTotalBooks();
+    Long countTotalBooks();
 
-    int countAvailableBooks();
+    Long countAvailableBooks();
 
 }

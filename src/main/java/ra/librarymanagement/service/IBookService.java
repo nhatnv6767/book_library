@@ -35,9 +35,9 @@ public interface IBookService {
 
     List<Book> findAvailableBooks();
 
-    int countTotalBooks();
+    Long countTotalBooks();
 
-    int countAvailableBooks();
+    Long countAvailableBooks();
 
 
 }

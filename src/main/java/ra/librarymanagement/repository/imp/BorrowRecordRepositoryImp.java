@@ -15,6 +15,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -160,15 +162,15 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
     @Override
     public int calculateTotalFinesThisMonth() {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        CriteriaQuery<BigDecimal> query = cb.createQuery(BigDecimal.class);
         Root<BorrowRecord> root = query.from(BorrowRecord.class);
 
         // that means select sum(fine) from borrow_records where status = RETURNED and return_date between start and end
         Predicate statusPredicate = cb.equal(root.get("status"), BorrowStatus.RETURNED);
         Predicate returnDatePredicate = cb.between(root.get("returnDate"), LocalDateTime.now().withDayOfMonth(1), LocalDateTime.now());
 
-        query.select(cb.sum(root.get("fine"))).where(cb.and(statusPredicate, returnDatePredicate));
-        Long result = entityManager.createQuery(query).getSingleResult();
+        query.select(cb.sum(root.<BigDecimal>get("fine"))).where(cb.and(statusPredicate, returnDatePredicate));
+        BigDecimal result = entityManager.createQuery(query).getSingleResult();
         return result != null ? result.intValue() : 0;
     }
 
