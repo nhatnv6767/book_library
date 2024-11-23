@@ -2,6 +2,7 @@ package ra.librarymanagement.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -24,12 +25,17 @@ import java.util.Properties;
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
+@ComponentScan(basePackages = {
+        "ra.librarymanagement.controller",
+        "ra.librarymanagement.repository.imp",
+        "ra.librarymanagement.service.imp"
+})
 public class AppConfig implements WebMvcConfigurer {
     // 1. viewResolver
     @Bean
     public ViewResolver viewResolver() {
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
-        viewResolver.setPrefix("/views");
+        viewResolver.setPrefix("/WEB-INF/views/");
         viewResolver.setSuffix(".jsp");
         return viewResolver;
     }
@@ -92,14 +98,29 @@ public class AppConfig implements WebMvcConfigurer {
         return multipartResolver;
     }
 
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/uploads/**")
+//                .addResourceLocations("file:src/main/resources/static/uploads/");
+//
+//        registry.addResourceHandler("/resources/**")
+//                .addResourceLocations("/resources/");
+//    }
+
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Xử lý uploads
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:src/main/resources/static/uploads/");
+                .addResourceLocations("file:uploads/");    // simple way to handle uploads
 
+        // handle static resources (css, js, images)
+        registry.addResourceHandler("/static/**")
+                .addResourceLocations("/resources/static/");
+
+        // handle resources
         registry.addResourceHandler("/resources/**")
                 .addResourceLocations("/resources/");
     }
-
 
 }
