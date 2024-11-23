@@ -100,9 +100,20 @@ public class BookController {
                          @RequestParam(value = "coverImageFile", required = false) MultipartFile file,
                          RedirectAttributes redirectAttributes) {
         try {
-            if (!file.isEmpty()) {
+
+            Book existingBook = bookService.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
+
+            if (!file.isEmpty() && file != null) {
+
+                if(existingBook.getCoverImage() != null){
+                    FileUploadUtil.deleteFile(existingBook.getCoverImage());
+                }
+
                 String filename = FileUploadUtil.saveFile(file, "books");
                 book.setCoverImage(filename);
+            } else {
+                book.setCoverImage(existingBook.getCoverImage());
             }
             bookService.update(book);
             redirectAttributes.addFlashAttribute("successMessage", "Book updated successfully");
@@ -152,9 +163,14 @@ public class BookController {
     }
 
     @GetMapping("/view/{id}")
+    @Transactional
     public String viewDetails(@PathVariable Long id, Model model) {
         Book book = bookService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
+        // Force initialize borrowRecords
+        book.getBorrowRecords().forEach(record -> {
+            record.getMember().getFullName();
+        });
         model.addAttribute("book", book);
         return "admin/books/view";
     }

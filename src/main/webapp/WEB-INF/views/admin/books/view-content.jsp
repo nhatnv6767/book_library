@@ -135,15 +135,11 @@
                         <c:forEach items="${book.borrowRecords}" var="record">
                             <tr>
                                 <td>${record.member.fullName}</td>
-                                <td>
-                                    <fmt:formatDate value="${record.borrowDate}" pattern="dd/MM/yyyy"/>
-                                </td>
-                                <td>
-                                    <fmt:formatDate value="${record.dueDate}" pattern="dd/MM/yyyy"/>
-                                </td>
+                                <td>${record.borrowDate}</td>
+                                <td>${record.dueDate}</td>
                                 <td>
                                     <c:if test="${record.returnDate != null}">
-                                        <fmt:formatDate value="${record.returnDate}" pattern="dd/MM/yyyy"/>
+                                        ${record.returnDate}
                                     </c:if>
                                 </td>
                                 <td>

@@ -15,7 +15,7 @@
                 ${book.bookId == null ? 'Add New Book' : 'Edit Book'}
             </h2>
 
-            <form action="${book.bookId == null ? '/admin/books/add' : '/admin/books/edit'}"
+            <form action="${book.bookId == null ? '/admin/books/add' : '/admin/books/edit/'.concat(book.bookId)}"
                   method="POST"
                   enctype="multipart/form-data"
                   class="space-y-4">

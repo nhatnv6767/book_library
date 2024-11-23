@@ -18,8 +18,12 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
+import ra.librarymanagement.util.FileUploadUtil;
+
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import java.io.File;
 import java.util.Properties;
 
 @Configuration
@@ -110,9 +114,13 @@ public class AppConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+        String uploadPath = new File("src/main/resources/static/uploads").getAbsolutePath();
+
         // Xử lý uploads
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:src/main/resources/static/uploads/");   // simple way to handle uploads
+                .addResourceLocations("file:" + uploadPath + "/");
+        // .addResourceLocations("file:src/main/resources/static/uploads/");   // simple way to handle uploads
 
         // handle static resources (css, js, images)
         registry.addResourceHandler("/static/**")
@@ -121,6 +129,12 @@ public class AppConfig implements WebMvcConfigurer {
         // handle resources
         registry.addResourceHandler("/resources/**")
                 .addResourceLocations("/resources/");
+    }
+
+    @PostConstruct
+    public void init() {
+        // Create upload directory if it doesn't exist
+        FileUploadUtil.createUploadDirectoryIfNeeded();
     }
 
 }
