@@ -26,6 +26,12 @@ public class MemberController {
         this.memberService = memberService;
     }
 
+    @ModelAttribute
+    public void addCommonAttributes(Model model) {
+        model.addAttribute("memberTypes", MemberType.values());
+        model.addAttribute("memberStatuses", MemberStatus.values());
+    }
+
     @GetMapping
     public String index(Model model) {
         model.addAttribute("members", memberService.findAll());
