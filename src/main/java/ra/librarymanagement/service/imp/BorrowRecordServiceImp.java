@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.book.Book;
+import ra.librarymanagement.model.book.BookStatus;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.repository.IBorrowRecordRepository;
 import ra.librarymanagement.service.IBookService;
@@ -153,21 +154,84 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
 
     @Override
     public List<BorrowRecord> findByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return new ArrayList<>();
+        return borrowRecordRepository.findByBorrowDateBetween(startDate, endDate);
     }
 
     @Override
     public List<BorrowRecord> findActiveBorrowsByMember(Long memberId) {
-        return new ArrayList<>();
+        return findByBookId(memberId).stream()
+                .filter(borrowRecord
+                        -> borrowRecord.getStatus() == BorrowStatus.BORROWING)
+                .toList();
     }
 
     @Override
+    @Transactional
     public boolean extendBorrowPeriod(Long borrowId) {
-        return false;
+        BorrowRecord borrowRecord = findById(borrowId)
+                .orElseThrow(() -> new IllegalArgumentException("Borrow record not found"));
+
+        // check if book is currently borrowed
+        if (borrowRecord.getStatus() != BorrowStatus.BORROWING) {
+            return false;
+        }
+        // check if book has reached maximum extensions
+        if (borrowRecord.getExtensionCount() >= MAX_EXTENSIONS) {
+            return false;
+        }
+        // check if book is overdue
+        if (LocalDateTime.now().isAfter(borrowRecord.getDueDate())) {
+            return false;
+        }
+
+        // extend borrow period
+        // increase due date by DEFAULT_BORROW_DAYS
+        borrowRecord.setDueDate(borrowRecord.getDueDate().plusDays(DEFAULT_BORROW_DAYS));
+        // increase extension count
+        borrowRecord.setExtensionCount(borrowRecord.getExtensionCount() + 1);
+
+        borrowRecordRepository.update(borrowRecord);
+
+        return true;
     }
 
     @Override
+    @Transactional
     public void reportLostBook(Long borrowId) {
+        BorrowRecord borrowRecord = findById(borrowId)
+                .orElseThrow(() -> new IllegalArgumentException("Borrow record not found"));
+        // check if book is currently borrowed
+        if (borrowRecord.getStatus() == BorrowStatus.LOST) {
+            throw new IllegalArgumentException("Book is already reported lost");
+        }
+        // check if book is currently borrowed
+        if (borrowRecord.getStatus() == BorrowStatus.RETURNED) {
+            throw new IllegalArgumentException("Cannot mark returned book as lost");
+        }
 
+        // set borrow record status to LOST
+        // set borrow record return date to now
+        // set borrow record fine to LOST_BOOK_FINE
+        borrowRecord.setStatus(BorrowStatus.LOST);
+        borrowRecord.setReturnDate(LocalDateTime.now());
+        borrowRecord.setFine(LOST_BOOK_FINE);
+        borrowRecord.setActualReturnCondition("Book reported lost");
+
+        // update book quantity
+        Book book = borrowRecord.getBook();
+        int currentQuantity = book.getQuantity();
+
+        book.setQuantity(currentQuantity - 1);
+
+        // if quantity is 0, set book status to OUT_OF_STOCK
+        if (currentQuantity - 1 <= 0) {
+            book.setAvailable(false);
+            book.setBookStatus(BookStatus.OUT_OF_STOCK);
+        }
+
+        // update book
+        bookService.update(book);
+        // update borrow record
+        borrowRecordRepository.update(borrowRecord);
     }
 }
