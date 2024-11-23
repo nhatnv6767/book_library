@@ -4,6 +4,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
+import ra.librarymanagement.model.book.Book;
+import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.statistic.Alert;
 import ra.librarymanagement.model.statistic.RecentActivity;
 import ra.librarymanagement.repository.IBorrowRecordRepository;
@@ -11,10 +13,7 @@ import ra.librarymanagement.util.CriteriaUtil;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -289,6 +288,9 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
             CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
             Root<BorrowRecord> root = query.from(BorrowRecord.class);
 
+            Join<BorrowRecord, Member> memberJoin = root.join("member");
+            Join<BorrowRecord, Book> bookJoin = root.join("book");
+
             // SELECT br.status, br.borrow_date, br.return_date,
             // m.full_name, b.title
             // FROM borrow_records br
@@ -301,8 +303,8 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
                     root.get("status"),
                     root.get("borrowDate"),
                     root.get("returnDate"),
-                    root.get("member").get("fullName"),
-                    root.get("book").get("title")
+                    memberJoin.get("fullName"),
+                    bookJoin.get("title")
             ).orderBy(
                     cb.desc(cb.coalesce(root.get("returnDate"), root.get("borrowDate")))
             );
@@ -315,42 +317,22 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
 
             for (Object[] result : results) {
                 Long borrowId = (Long) result[0];
-                BorrowStatus status = (BorrowStatus) result[0];
-                LocalDateTime borrowDate = (LocalDateTime) result[1];
-                LocalDateTime returnDate = (LocalDateTime) result[2];
-                String memberName = (String) result[3];
-                String bookTitle = (String) result[4];
+                String status = (String) result[1];
+                LocalDateTime borrowDate = (LocalDateTime) result[2];
+                LocalDateTime returnDate = (LocalDateTime) result[3];
+                String memberName = (String) result[4];
+                String bookTitle = (String) result[5];
 
-                String action;
-                switch (status) {
-                    case BORROWING:
-                        action = "borrowed";
-                        break;
-                    case RETURNED:
-                        action = "returned";
-                        break;
-                    case OVERDUE:
-                        action = "overdue";
-                        break;
-                    case LOST:
-                        action = "reported lost";
-                        break;
-                    default:
-                        action = "unknown action";
-                        break;
-                }
-
-                LocalDateTime activityDate = returnDate != null ? returnDate : borrowDate;
+                BorrowStatus borrowStatus = BorrowStatus.valueOf(status);
 
                 RecentActivity activity = new RecentActivity(
                         borrowId,
-                        status,
+                        borrowStatus,
                         bookTitle,
                         memberName,
                         borrowDate,
                         returnDate
                 );
-
                 activities.add(activity);
             }
 
@@ -364,96 +346,96 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
     }
 
     @Override
-public List<Alert> getActiveAlerts() {
-    try {
-        List<Alert> alerts = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
+    public List<Alert> getActiveAlerts() {
+        try {
+            List<Alert> alerts = new ArrayList<>();
+            LocalDateTime now = LocalDateTime.now();
 
-        // 1. Tìm sách sắp đến hạn (còn 3 ngày)
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Object[]> dueSoonQuery = cb.createQuery(Object[].class);
-        Root<BorrowRecord> dueSoonRoot = dueSoonQuery.from(BorrowRecord.class);
+            // 1. Tìm sách sắp đến hạn (còn 3 ngày)
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Object[]> dueSoonQuery = cb.createQuery(Object[].class);
+            Root<BorrowRecord> dueSoonRoot = dueSoonQuery.from(BorrowRecord.class);
 
-        LocalDateTime threeDaysFromNow = now.plusDays(3);
-        Predicate dueSoonPredicate = cb.and(
-                cb.equal(dueSoonRoot.get("status"), BorrowStatus.BORROWING),
-                cb.between(
-                        dueSoonRoot.get("dueDate"),
-                        now,
-                        threeDaysFromNow
-                )
-        );
+            LocalDateTime threeDaysFromNow = now.plusDays(3);
+            Predicate dueSoonPredicate = cb.and(
+                    cb.equal(dueSoonRoot.get("status"), BorrowStatus.BORROWING),
+                    cb.between(
+                            dueSoonRoot.get("dueDate"),
+                            now,
+                            threeDaysFromNow
+                    )
+            );
 
-        dueSoonQuery.multiselect(
-                dueSoonRoot.get("book").get("title"),
-                dueSoonRoot.get("member").get("fullName"),
-                dueSoonRoot.get("dueDate")
-        ).where(dueSoonPredicate)
-         .orderBy(cb.asc(dueSoonRoot.get("dueDate")));
+            dueSoonQuery.multiselect(
+                            dueSoonRoot.get("book").get("title"),
+                            dueSoonRoot.get("member").get("fullName"),
+                            dueSoonRoot.get("dueDate")
+                    ).where(dueSoonPredicate)
+                    .orderBy(cb.asc(dueSoonRoot.get("dueDate")));
 
-        List<Object[]> dueSoonResults = entityManager.createQuery(dueSoonQuery).getResultList();
+            List<Object[]> dueSoonResults = entityManager.createQuery(dueSoonQuery).getResultList();
 
-        // Tạo cảnh báo cho sách sắp đến hạn
-        for (Object[] record : dueSoonResults) {
-            String bookTitle = (String) record[0];
-            String memberName = (String) record[1];
-            LocalDateTime dueDate = (LocalDateTime) record[2];
+            // Tạo cảnh báo cho sách sắp đến hạn
+            for (Object[] record : dueSoonResults) {
+                String bookTitle = (String) record[0];
+                String memberName = (String) record[1];
+                LocalDateTime dueDate = (LocalDateTime) record[2];
 
-            Alert alert = Alert.builder()
-                    .type("DUE_SOON")
-                    .message(String.format("Book '%s' borrowed by %s is due in %d days",
-                            bookTitle, memberName,
-                            ChronoUnit.DAYS.between(now, dueDate)))
-                    .dueDate(dueDate)
-                    .build();
+                Alert alert = Alert.builder()
+                        .type("DUE_SOON")
+                        .message(String.format("Book '%s' borrowed by %s is due in %d days",
+                                bookTitle, memberName,
+                                ChronoUnit.DAYS.between(now, dueDate)))
+                        .dueDate(dueDate)
+                        .build();
 
-            alerts.add(alert);
+                alerts.add(alert);
+            }
+
+            // 2. Tìm sách quá hạn
+            CriteriaQuery<Object[]> overdueQuery = cb.createQuery(Object[].class);
+            Root<BorrowRecord> overdueRoot = overdueQuery.from(BorrowRecord.class);
+
+            Predicate overduePredicate = cb.and(
+                    cb.equal(overdueRoot.get("status"), BorrowStatus.BORROWING),
+                    cb.lessThan(overdueRoot.get("dueDate"), now)
+            );
+
+            overdueQuery.multiselect(
+                            overdueRoot.get("book").get("title"),
+                            overdueRoot.get("member").get("fullName"),
+                            overdueRoot.get("dueDate")
+                    ).where(overduePredicate)
+                    .orderBy(cb.asc(overdueRoot.get("dueDate")));
+
+            List<Object[]> overdueResults = entityManager.createQuery(overdueQuery).getResultList();
+
+            // Tạo cảnh báo cho sách quá hạn
+            for (Object[] record : overdueResults) {
+                String bookTitle = (String) record[0];
+                String memberName = (String) record[1];
+                LocalDateTime dueDate = (LocalDateTime) record[2];
+
+                Alert alert = Alert.builder()
+                        .type("OVERDUE")
+                        .message(String.format("Book '%s' borrowed by %s is overdue by %d days",
+                                bookTitle, memberName,
+                                ChronoUnit.DAYS.between(dueDate, now)))
+                        .dueDate(dueDate)
+                        .build();
+
+                alerts.add(alert);
+            }
+
+            // Sắp xếp theo dueDate
+            alerts.sort((a1, a2) -> a1.getDueDate().compareTo(a2.getDueDate()));
+
+            logger.info("Found {} active alerts", alerts.size());
+            return alerts;
+
+        } catch (Exception e) {
+            logger.error("Error getting active alerts: " + e.getMessage(), e);
+            return Collections.emptyList();
         }
-
-        // 2. Tìm sách quá hạn
-        CriteriaQuery<Object[]> overdueQuery = cb.createQuery(Object[].class);
-        Root<BorrowRecord> overdueRoot = overdueQuery.from(BorrowRecord.class);
-
-        Predicate overduePredicate = cb.and(
-                cb.equal(overdueRoot.get("status"), BorrowStatus.BORROWING),
-                cb.lessThan(overdueRoot.get("dueDate"), now)
-        );
-
-        overdueQuery.multiselect(
-                overdueRoot.get("book").get("title"),
-                overdueRoot.get("member").get("fullName"),
-                overdueRoot.get("dueDate")
-        ).where(overduePredicate)
-         .orderBy(cb.asc(overdueRoot.get("dueDate")));
-
-        List<Object[]> overdueResults = entityManager.createQuery(overdueQuery).getResultList();
-
-        // Tạo cảnh báo cho sách quá hạn
-        for (Object[] record : overdueResults) {
-            String bookTitle = (String) record[0];
-            String memberName = (String) record[1];
-            LocalDateTime dueDate = (LocalDateTime) record[2];
-
-            Alert alert = Alert.builder()
-                    .type("OVERDUE")
-                    .message(String.format("Book '%s' borrowed by %s is overdue by %d days",
-                            bookTitle, memberName,
-                            ChronoUnit.DAYS.between(dueDate, now)))
-                    .dueDate(dueDate)
-                    .build();
-
-            alerts.add(alert);
-        }
-
-        // Sắp xếp theo dueDate
-        alerts.sort((a1, a2) -> a1.getDueDate().compareTo(a2.getDueDate()));
-
-        logger.info("Found {} active alerts", alerts.size());
-        return alerts;
-
-    } catch (Exception e) {
-        logger.error("Error getting active alerts: " + e.getMessage(), e);
-        return Collections.emptyList();
     }
-}
 }
