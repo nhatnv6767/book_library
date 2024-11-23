@@ -109,11 +109,23 @@
                         <!-- Member Type -->
                         <div class="flex items-center space-x-2">
                             <span class="w-16 text-xs text-gray-500">Type:</span>
-                            <div class="badge ${member.memberType == 'REGULAR' ? 'bg-blue-100 text-blue-800' :
-                       member.memberType == 'VIP' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg animate-pulse' :
-                       'bg-green-100 text-green-800'}"
-                                ${member.memberType == 'VIP' ? 'style="text-shadow: 0 0 5px rgba(255,255,255,0.5);"' : ''}>
-                                    ${member.memberType == 'VIP' ? '★ ' : ''}${member.memberType.displayValue}${member.memberType == 'VIP' ? ' ★' : ''}
+                            <div class="badge ${
+        member.memberType == 'REGULAR' ? 'bg-slate-100 text-slate-800 border border-slate-300' :
+        member.memberType == 'VIP' ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold shadow-md' :
+        'bg-gradient-to-r from-sky-400 to-teal-500 text-white shadow-sm'
+    }">
+                                <c:choose>
+                                    <c:when test="${member.memberType == 'VIP'}">
+                                        <i class="fas fa-crown text-yellow-300 mr-1"></i>
+                                    </c:when>
+                                    <c:when test="${member.memberType == 'STUDENT'}">
+                                        <i class="fas fa-graduation-cap mr-1"></i>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <i class="fas fa-user mr-1"></i>
+                                    </c:otherwise>
+                                </c:choose>
+                                    ${member.memberType.displayValue}
                             </div>
                         </div>
                         <!-- Status -->
