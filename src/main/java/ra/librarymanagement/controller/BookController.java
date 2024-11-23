@@ -42,7 +42,6 @@ public class BookController {
     @Transactional
     public String index(Model model) {
         model.addAttribute("books", bookService.findAll());
-        System.out.println("Books: " + bookService.findAll());
         return "admin/books/index";
     }
 

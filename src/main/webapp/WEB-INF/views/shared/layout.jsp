@@ -19,7 +19,16 @@
     <!-- DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css"/>
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Alert messages timeout -->
+    <script>
+        setTimeout(function () {
+            document.querySelectorAll('.alert').forEach(function (alert) {
+                alert.style.display = 'none';
+            });
+        }, 5000);
+    </script>
     <!-- Custom CSS -->
     <style>
         @media (max-width: 768px) {
