@@ -151,7 +151,13 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </label>
                         <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                            <!-- <li>
+                                <a href="/admin/members/view/${member.memberId}" class="text-info">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </li> -->
                             <li>
+                                <!-- Sửa từ dòng này -->
                                 <a href="/admin/members/view/${member.memberId}" class="text-info">
                                     <i class="fas fa-eye"></i> View Details
                                 </a>

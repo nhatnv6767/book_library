@@ -41,4 +41,6 @@ public interface IMemberRepository {
     int countActiveMembers();
 
     int countNewMembersThisMonth();
+
+    Optional<Member> findByIdWithBorrowRecords(Long id);
 }

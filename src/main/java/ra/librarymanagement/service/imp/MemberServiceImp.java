@@ -31,7 +31,8 @@ public class MemberServiceImp implements IMemberService {
 
     @Override
     public Optional<Member> findById(Long id) {
-        return memberRepository.findById(id);
+        // return memberRepository.findById(id);
+        return memberRepository.findByIdWithBorrowRecords(id);
     }
 
     @Override
@@ -173,4 +174,6 @@ public class MemberServiceImp implements IMemberService {
                 status
         );
     }
+
+
 }

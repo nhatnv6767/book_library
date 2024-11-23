@@ -28,15 +28,17 @@ public class MemberController {
         this.memberService = memberService;
     }
 
-    @ModelAttribute
-    public void addCommonAttributes(Model model) {
-        model.addAttribute("memberTypes", MemberType.values());
-        model.addAttribute("memberStatuses", MemberStatus.values());
-    }
+    // @ModelAttribute
+    // public void addCommonAttributes(Model model) {
+    //     model.addAttribute("memberTypes", MemberType.values());
+    //     model.addAttribute("memberStatuses", MemberStatus.values());
+    // }
 
     @GetMapping
     public String index(Model model) {
         model.addAttribute("members", memberService.findAll());
+        model.addAttribute("memberTypes", MemberType.values());
+        model.addAttribute("memberStatuses", MemberStatus.values());
         return "admin/members/index";
     }
 
@@ -44,6 +46,7 @@ public class MemberController {
     public String showAddForm(Model model) {
         model.addAttribute("member", new Member());
         model.addAttribute("memberTypes", MemberType.values());
+        model.addAttribute("memberStatuses", MemberStatus.values());
         return "admin/members/form";
     }
 

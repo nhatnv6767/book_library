@@ -11,11 +11,9 @@ import ra.librarymanagement.repository.IMemberRepository;
 import ra.librarymanagement.util.CriteriaUtil;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -214,10 +212,10 @@ public class MemberRepositoryImp implements IMemberRepository {
         CriteriaQuery<Member> query = cb.createQuery(Member.class);
         Root<Member> root = query.from(Member.class);
 
-        // Tạo list các điều kiện
+        // list of predicates
         List<Predicate> predicates = new ArrayList<>();
 
-        // Thêm điều kiện tìm theo keyword nếu có
+        // condition keyword
         if (keyword != null && !keyword.trim().isEmpty()) {
             String searchKeyword = "%" + keyword.toLowerCase() + "%";
             predicates.add(cb.or(
@@ -227,21 +225,44 @@ public class MemberRepositoryImp implements IMemberRepository {
             ));
         }
 
-        // Thêm điều kiện memberType nếu có
+        // condition member type
         if (memberType != null) {
             predicates.add(cb.equal(root.get("memberType"), memberType));
         }
 
-        // Thêm điều kiện status nếu có
+        // condition status
         if (status != null) {
             predicates.add(cb.equal(root.get("status"), status));
         }
 
-        // Kết hợp tất cả điều kiện bằng AND
+        // add all predicates to query
         if (!predicates.isEmpty()) {
             query.where(cb.and(predicates.toArray(new Predicate[0])));
         }
 
         return entityManager.createQuery(query).getResultList();
+    }
+
+    @Override
+    public Optional<Member> findByIdWithBorrowRecords(Long id) {
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Member> query = cb.createQuery(Member.class);
+            Root<Member> root = query.from(Member.class);
+
+            // Fetch BorrowRecord eagerly
+            Fetch<Member, BorrowRecord> borrowRecordFetch = root.fetch("borrowRecord", JoinType.LEFT);
+
+            // Fetch BorrowRecord eagerly
+            borrowRecordFetch.fetch("book", JoinType.LEFT);
+            // root.fetch("borrowRecord", JoinType.LEFT);
+
+            query.where(cb.equal(root.get("memberId"), id));
+
+            return Optional.of(entityManager.createQuery(query)
+                    .getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
     }
 }

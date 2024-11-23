@@ -39,4 +39,5 @@ public interface IMemberService {
     int countNewMembersThisMonth();
 
     List<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status);
+
 }
