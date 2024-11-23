@@ -5,6 +5,9 @@
   Time: 13:10
   To change this template use File | Settings | File Templates.
 --%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!-- Search and Filter Section -->
 <div class="bg-base-100 p-4 rounded-lg shadow mb-6">
     <form action="/admin/books/search" method="GET" class="space-y-4">
@@ -70,6 +73,16 @@
         </tr>
         </thead>
         <tbody>
+        <tr>
+            <td colspan="8">
+                <c:if test="${empty books}">
+                    Books is empty
+                </c:if>
+                <c:if test="${not empty books}">
+                    Number of books: ${books.size()}
+                </c:if>
+            </td>
+        </tr>
         <c:forEach items="${books}" var="book">
             <tr>
                 <td>
@@ -98,9 +111,9 @@
                 </td>
                 <td>
                     <div class="badge
-                            ${book.status == 'AVAILABLE' ? 'badge-success' :
-                              book.status == 'OUT_OF_STOCK' ? 'badge-warning' : 'badge-error'}">
-                            ${book.status.displayValue}
+                            ${book.bookStatus == 'AVAILABLE' ? 'badge-success' :
+                              book.bookStatus == 'OUT_OF_STOCK' ? 'badge-warning' : 'badge-error'}">
+                            ${book.bookStatus.displayValue}
                     </div>
                 </td>
                 <td>

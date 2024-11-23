@@ -5,6 +5,9 @@
   Time: 13:37
   To change this template use File | Settings | File Templates.
 --%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <div class="max-w-4xl mx-auto">
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">

@@ -21,14 +21,6 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- Alert messages timeout -->
-    <script>
-        setTimeout(function () {
-            document.querySelectorAll('.alert').forEach(function (alert) {
-                alert.style.display = 'none';
-            });
-        }, 5000);
-    </script>
     <!-- Custom CSS -->
     <style>
         @media (max-width: 768px) {
@@ -57,7 +49,8 @@
                 <div class="dropdown dropdown-end">
                     <label tabindex="0" class="btn btn-ghost btn-circle avatar">
                         <div class="w-10 rounded-full">
-                            <img src="/uploads/avatars/admin.jpg"/>
+                            <%--                            <img src="/uploads/avatars/admin.jpg"/>--%>
+                            <img src="https://cdn.pixabay.com/photo/2016/04/23/20/21/smart-1348189_1280.jpg"/>
                         </div>
                     </label>
                     <ul tabindex="0"

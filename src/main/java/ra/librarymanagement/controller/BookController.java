@@ -41,7 +41,19 @@ public class BookController {
     @GetMapping
     @Transactional
     public String index(Model model) {
-        model.addAttribute("books", bookService.findAll());
+        List<Book> books = bookService.findAll();
+//        System.out.println("Books: " + books);
+//
+//        for (Book book : books) {
+//            System.out.println("Book detail: " +
+//                    "ID=" + book.getBookId() +
+//                    ", Title=" + book.getTitle() +
+//                    ", ISBN=" + book.getIsbn() +
+//                    ", Status=" + book.getBookStatus());
+//        }
+        model.addAttribute("books", books);
+        model.addAttribute("categories", getBookCategories());
+        model.addAttribute("statuses", BookStatus.values());
         return "admin/books/index";
     }
 
@@ -62,7 +74,7 @@ public class BookController {
                 String filename = FileUploadUtil.saveFile(file, "books");
                 book.setCoverImage(filename);
             }
-            bookService.update(book);
+            bookService.save(book);
             redirectAttributes.addFlashAttribute("successMessage", "Book added successfully");
             return "redirect:/admin/books";
         } catch (Exception e) {
@@ -139,5 +151,11 @@ public class BookController {
         return "admin/books/index";
     }
 
-
+    @GetMapping("/view/{id}")
+    public String viewDetails(@PathVariable Long id, Model model) {
+        Book book = bookService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
+        model.addAttribute("book", book);
+        return "admin/books/view";
+    }
 }
