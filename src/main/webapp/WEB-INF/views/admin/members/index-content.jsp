@@ -8,7 +8,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
 <!-- Search and Filter Section -->
 <div class="bg-base-100 p-4 rounded-lg shadow mb-6">
     <form action="/admin/members/search" method="GET" class="space-y-4">
@@ -42,7 +41,7 @@
             <div class="form-control">
                 <select name="status" class="select select-bordered w-full">
                     <option value="">All Statuses</option>
-                    <c:forEach items="${statuses}" var="status">
+                    <c:forEach items="${memberStatuses}" var="status">
                         <option value="${status}" ${param.status == status ? 'selected' : ''}>
                                 ${status.displayValue}
                         </option>
@@ -66,12 +65,11 @@
         <thead>
         <tr>
             <th>Avatar</th>
-            <th>Member Code</th>
-            <th>Name & Contact</th>
-            <th>Member Type</th>
+            <th>Member Info</th>
+            <th>Contact</th>
+            <th>Type & Status</th>
             <th>Join Date</th>
-            <th>Status</th>
-            <th>Active Borrows</th>
+            <th>Expiry Date</th>
             <th>Actions</th>
         </tr>
         </thead>
@@ -87,23 +85,27 @@
                     </div>
                 </td>
                 <td>
-                    <div class="font-bold">${member.memberCode}</div>
-                    <c:if test="${not empty member.identityCard}">
-                        <div class="text-sm opacity-50">${member.identityCard}</div>
-                    </c:if>
-                </td>
-                <td>
                     <div class="font-bold">${member.fullName}</div>
                     <div class="text-sm opacity-50">
-                        <div>${member.email}</div>
-                        <div>${member.phone}</div>
+                        <div>ID: ${member.memberCode}</div>
+                        <c:if test="${not empty member.identityCard}">
+                            <div>IC: ${member.identityCard}</div>
+                        </c:if>
                     </div>
                 </td>
                 <td>
-                    <div class="badge badge-ghost">${member.memberType.displayValue}</div>
+                    <div class="text-sm">
+                        <div><i class="fas fa-envelope"></i> ${member.email}</div>
+                        <c:if test="${not empty member.phone}">
+                            <div><i class="fas fa-phone"></i> ${member.phone}</div>
+                        </c:if>
+                        <c:if test="${not empty member.address}">
+                            <div class="truncate max-w-xs"><i class="fas fa-map-marker-alt"></i> ${member.address}</div>
+                        </c:if>
+                    </div>
                 </td>
-                <td>${member.joinDate}</td>
                 <td>
+                    <div class="badge mb-2 badge-ghost">${member.memberType.displayValue}</div>
                     <div class="badge
                             ${member.status == 'ACTIVE' ? 'badge-success' :
                               member.status == 'SUSPENDED' ? 'badge-warning' :
@@ -111,7 +113,12 @@
                             ${member.status.displayValue}
                     </div>
                 </td>
-                <td class="text-center">${member.borrowRecords.size()}</td>
+                <td>${member.joinDate}</td>
+                <td>
+                    <c:if test="${not empty member.expiryDate}">
+                        ${member.expiryDate}
+                    </c:if>
+                </td>
                 <td>
                     <div class="dropdown dropdown-end">
                         <label tabindex="0" class="btn btn-ghost btn-xs">
@@ -128,6 +135,20 @@
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                             </li>
+                            <c:if test="${member.status != 'ACTIVE'}">
+                                <li>
+                                    <a href="/admin/members/activate/${member.memberId}" class="text-success">
+                                        <i class="fas fa-check-circle"></i> Activate
+                                    </a>
+                                </li>
+                            </c:if>
+                            <c:if test="${member.status == 'ACTIVE'}">
+                                <li>
+                                    <a href="/admin/members/suspend/${member.memberId}" class="text-warning">
+                                        <i class="fas fa-pause-circle"></i> Suspend
+                                    </a>
+                                </li>
+                            </c:if>
                             <li>
                                 <a href="#" onclick="confirmDelete(${member.memberId})" class="text-error">
                                     <i class="fas fa-trash"></i> Delete
