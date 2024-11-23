@@ -109,7 +109,12 @@
                         <!-- Member Type -->
                         <div class="flex items-center space-x-2">
                             <span class="w-16 text-xs text-gray-500">Type:</span>
-                            <div class="badge badge-ghost">${member.memberType.displayValue}</div>
+                            <div class="badge ${member.memberType == 'REGULAR' ? 'bg-blue-100 text-blue-800' :
+                       member.memberType == 'VIP' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg animate-pulse' :
+                       'bg-green-100 text-green-800'}"
+                                ${member.memberType == 'VIP' ? 'style="text-shadow: 0 0 5px rgba(255,255,255,0.5);"' : ''}>
+                                    ${member.memberType == 'VIP' ? '★ ' : ''}${member.memberType.displayValue}${member.memberType == 'VIP' ? ' ★' : ''}
+                            </div>
                         </div>
                         <!-- Status -->
                         <div class="flex items-center space-x-2">
