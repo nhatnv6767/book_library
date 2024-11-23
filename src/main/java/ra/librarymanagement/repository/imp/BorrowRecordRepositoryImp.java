@@ -351,7 +351,7 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
             List<Alert> alerts = new ArrayList<>();
             LocalDateTime now = LocalDateTime.now();
 
-            // 1. Tìm sách sắp đến hạn (còn 3 ngày)
+            // 1. find due soon books (due in 3 days)
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Object[]> dueSoonQuery = cb.createQuery(Object[].class);
             Root<BorrowRecord> dueSoonRoot = dueSoonQuery.from(BorrowRecord.class);
@@ -375,7 +375,7 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
 
             List<Object[]> dueSoonResults = entityManager.createQuery(dueSoonQuery).getResultList();
 
-            // Tạo cảnh báo cho sách sắp đến hạn
+            // create alert for due soon books
             for (Object[] record : dueSoonResults) {
                 String bookTitle = (String) record[0];
                 String memberName = (String) record[1];
@@ -392,7 +392,7 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
                 alerts.add(alert);
             }
 
-            // 2. Tìm sách quá hạn
+            // 2. find books that are overdue
             CriteriaQuery<Object[]> overdueQuery = cb.createQuery(Object[].class);
             Root<BorrowRecord> overdueRoot = overdueQuery.from(BorrowRecord.class);
 
@@ -410,7 +410,7 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
 
             List<Object[]> overdueResults = entityManager.createQuery(overdueQuery).getResultList();
 
-            // Tạo cảnh báo cho sách quá hạn
+            // create alert for overdue books
             for (Object[] record : overdueResults) {
                 String bookTitle = (String) record[0];
                 String memberName = (String) record[1];
@@ -427,7 +427,7 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
                 alerts.add(alert);
             }
 
-            // Sắp xếp theo dueDate
+            // sort alerts by due date
             alerts.sort((a1, a2) -> a1.getDueDate().compareTo(a2.getDueDate()));
 
             logger.info("Found {} active alerts", alerts.size());
