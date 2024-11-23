@@ -82,9 +82,24 @@ public class MemberController {
                          @RequestParam(value = "avatarFile", required = false) MultipartFile file,
                          RedirectAttributes redirectAttributes) {
         try {
-            if (!file.isEmpty()) {
+
+            // Get the existing member
+            Member existingMember = memberService.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
+
+            member.setCreatedAt(existingMember.getCreatedAt());
+            member.setJoinDate(existingMember.getJoinDate());
+
+            // If the file is not empty, save the new file
+            if (!file.isEmpty() && file != null) {
+                // Delete the existing file
+                if (existingMember.getAvatar() != null) {
+                    FileUploadUtil.deleteFile(existingMember.getAvatar());
+                }
                 String filename = FileUploadUtil.saveFile(file, "avatars");
                 member.setAvatar(filename);
+            } else {
+                member.setAvatar(existingMember.getAvatar());
             }
             memberService.update(member);
             redirectAttributes.addFlashAttribute("successMessage", "Member updated successfully");
