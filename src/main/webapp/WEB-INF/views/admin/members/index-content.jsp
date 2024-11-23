@@ -105,12 +105,21 @@
                     </div>
                 </td>
                 <td>
-                    <div class="badge mb-2 badge-ghost">${member.memberType.displayValue}</div>
-                    <div class="badge
-                            ${member.status == 'ACTIVE' ? 'badge-success' :
+                    <div class="flex flex-col gap-2">
+                        <!-- Member Type -->
+                        <div class="flex items-center space-x-2">
+                            <span class="w-16 text-xs text-gray-500">Type:</span>
+                            <div class="badge badge-ghost">${member.memberType.displayValue}</div>
+                        </div>
+                        <!-- Status -->
+                        <div class="flex items-center space-x-2">
+                            <span class="w-16 text-xs text-gray-500">Status:</span>
+                            <div class="badge ${member.status == 'ACTIVE' ? 'badge-success' :
                               member.status == 'SUSPENDED' ? 'badge-warning' :
                               'badge-error'}">
-                            ${member.status.displayValue}
+                                    ${member.status.displayValue}
+                            </div>
+                        </div>
                     </div>
                 </td>
                 <td>${member.joinDate}</td>
