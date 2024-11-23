@@ -2,9 +2,12 @@ package ra.librarymanagement.service;
 
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
+import ra.librarymanagement.model.statistic.Alert;
+import ra.librarymanagement.model.statistic.RecentActivity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface IBorrowRecordService {
@@ -33,4 +36,18 @@ public interface IBorrowRecordService {
     boolean extendBorrowPeriod(Long borrowId);
 
     void reportLostBook(Long borrowId);
+
+    int countCurrentBorrows();
+
+    int countOverdueBorrows();
+
+    int calculateTotalFinesThisMonth();
+
+    Map<String, Integer> getBorrowTrendsLastSixMonths();
+
+    Map<String, Integer> getMostPopularBooks(int limit);
+
+    List<RecentActivity> getRecentActivities(int limit);
+
+    List<Alert> getActiveAlerts();
 }

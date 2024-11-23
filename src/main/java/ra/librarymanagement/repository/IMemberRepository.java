@@ -35,4 +35,8 @@ public interface IMemberRepository {
     List<Member> findActiveMembers();
 
     long countActiveBooksByMember(Long memberId);
+
+    int countActiveMembers();
+
+    int countNewMembersThisMonth();
 }

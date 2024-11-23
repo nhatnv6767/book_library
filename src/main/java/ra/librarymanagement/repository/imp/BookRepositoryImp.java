@@ -127,6 +127,20 @@ public class BookRepositoryImp implements IBookRepository {
     }
 
     @Override
+    public int countAvailableBooks() {
+        CriteriaUtil.Result<Long> result = CriteriaUtil.getResult(entityManager, Long.class);
+        // SELECT COUNT(*) FROM books WHERE available = true AND quantity > 0 AND status = 'AVAILABLE'
+        result.query.select(result.cb.count(result.root)).where(
+                result.cb.and(
+                        result.cb.equal(result.root.get("available"), true),
+                        result.cb.greaterThan(result.root.get("quantity"), 0),
+                        result.cb.equal(result.root.get("status"), BookStatus.AVAILABLE)
+                )
+        );
+        return entityManager.createQuery(result.query).getSingleResult().intValue();
+    }
+
+    @Override
     public void updateQuantity(Long bookId, Integer quantity) {
         Book book = entityManager.find(Book.class, bookId);
         if (book != null) {
@@ -136,4 +150,13 @@ public class BookRepositoryImp implements IBookRepository {
             entityManager.merge(book);
         }
     }
+
+    @Override
+    public int countTotalBooks() {
+        CriteriaUtil.Result<Long> result = CriteriaUtil.getResult(entityManager, Long.class);
+        result.query.select(result.cb.count(result.root));
+        return entityManager.createQuery(result.query).getSingleResult().intValue();
+    }
+
+
 }

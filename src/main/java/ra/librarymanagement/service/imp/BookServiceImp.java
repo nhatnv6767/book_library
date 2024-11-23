@@ -138,4 +138,16 @@ public class BookServiceImp implements IBookService {
     public List<Book> findAvailableBooks() {
         return bookRepository.findAvailableBooks();
     }
+
+    @Override
+    public int countTotalBooks() {
+        return bookRepository.countTotalBooks();
+    }
+
+    @Override
+    public int countAvailableBooks() {
+        return bookRepository.countAvailableBooks();
+    }
+
+
 }

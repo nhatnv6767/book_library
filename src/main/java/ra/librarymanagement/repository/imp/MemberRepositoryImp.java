@@ -15,8 +15,13 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Repository
 @Transactional
@@ -24,6 +29,8 @@ public class MemberRepositoryImp implements IMemberRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    private static final Logger logger = LoggerFactory.getLogger(BorrowRecordRepositoryImp.class);
 
     @Override
     public List<Member> findAll() {
@@ -145,5 +152,57 @@ public class MemberRepositoryImp implements IMemberRepository {
                         cb.equal(root.get("status"), BorrowStatus.BORROWING)
                 ));
         return entityManager.createQuery(query).getSingleResult();
+    }
+
+    @Override
+    public int countActiveMembers() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<Member> root = query.from(Member.class);
+        // that means select count(*) from members where status = ACTIVE
+        query.select(cb.count(root)).where(cb.equal(root.get("status"), MemberStatus.ACTIVE));
+        return entityManager.createQuery(query).getSingleResult().intValue();
+    }
+
+    @Override
+    public int countNewMembersThisMonth() {
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Long> query = cb.createQuery(Long.class);
+            Root<Member> root = query.from(Member.class);
+
+            // Get first day of month and last day of month
+            LocalDateTime firstDayOfMonth = LocalDateTime.now()
+                    .withDayOfMonth(1)
+                    .withHour(0)
+                    .withMinute(0)
+                    .withSecond(0);
+
+            LocalDateTime lastDayOfMonth = firstDayOfMonth
+                    .plusMonths(1)
+                    .minusSeconds(1);
+
+            // SELECT COUNT(*) FROM members
+            // WHERE status = 'ACTIVE'
+            // AND join_date >= first_day_of_month
+            // AND join_date <= last_day_of_month
+            query.select(cb.count(root))
+                    .where(cb.and(
+                            cb.equal(root.get("status"), MemberStatus.ACTIVE),
+                            cb.between(
+                                    root.get("joinDate"),
+                                    firstDayOfMonth,
+                                    lastDayOfMonth
+                            )
+                    ));
+
+            return entityManager.createQuery(query)
+                    .getSingleResult()
+                    .intValue();
+
+        } catch (Exception e) {
+            logger.error("Error counting new members this month: " + e.getMessage(), e);
+            return 0;
+        }
     }
 }

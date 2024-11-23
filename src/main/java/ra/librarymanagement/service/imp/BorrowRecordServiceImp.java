@@ -8,6 +8,8 @@ import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.book.BookStatus;
 import ra.librarymanagement.model.member.Member;
+import ra.librarymanagement.model.statistic.Alert;
+import ra.librarymanagement.model.statistic.RecentActivity;
 import ra.librarymanagement.repository.IBorrowRecordRepository;
 import ra.librarymanagement.service.IBookService;
 import ra.librarymanagement.service.IBorrowRecordService;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -233,5 +236,40 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
         bookService.update(book);
         // update borrow record
         borrowRecordRepository.update(borrowRecord);
+    }
+
+    @Override
+    public int countCurrentBorrows() {
+        return borrowRecordRepository.countCurrentBorrows();
+    }
+
+    @Override
+    public int countOverdueBorrows() {
+        return borrowRecordRepository.countOverdueBorrows();
+    }
+
+    @Override
+    public int calculateTotalFinesThisMonth() {
+        return borrowRecordRepository.calculateTotalFinesThisMonth();
+    }
+
+    @Override
+    public Map<String, Integer> getBorrowTrendsLastSixMonths() {
+        return borrowRecordRepository.getBorrowTrendsLastSixMonths();
+    }
+
+    @Override
+    public Map<String, Integer> getMostPopularBooks(int limit) {
+        return borrowRecordRepository.getMostPopularBooks(limit);
+    }
+
+    @Override
+    public List<RecentActivity> getRecentActivities(int limit) {
+        return borrowRecordRepository.getRecentActivities(limit);
+    }
+
+    @Override
+    public List<Alert> getActiveAlerts() {
+        return borrowRecordRepository.getActiveAlerts();
     }
 }

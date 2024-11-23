@@ -33,4 +33,8 @@ public interface IMemberService {
     long getActiveBorrowCount(Long memberId);
 
     void updateMemberStatus(Long memberId, MemberStatus status);
+
+    int countActiveMembers();
+
+    int countNewMembersThisMonth();
 }

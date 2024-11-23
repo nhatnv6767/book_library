@@ -154,4 +154,14 @@ public class MemberServiceImp implements IMemberService {
         member.setStatus(status);
         memberRepository.update(member);
     }
+
+    @Override
+    public int countActiveMembers() {
+        return memberRepository.countActiveMembers();
+    }
+
+    @Override
+    public int countNewMembersThisMonth() {
+        return memberRepository.countNewMembersThisMonth();
+    }
 }
