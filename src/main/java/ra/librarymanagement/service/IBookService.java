@@ -33,4 +33,6 @@ public interface IBookService {
 
     long getAvailableCopies(Long bookId);
 
+    List<Book> findAvailableBooks();
+
 }

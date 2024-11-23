@@ -114,6 +114,7 @@ public class BookServiceImp implements IBookService {
                 .orElse(false);
     }
 
+
     @Override
     @Transactional
     public void updateQuantity(Long bookId, Integer quantity) {
@@ -131,5 +132,10 @@ public class BookServiceImp implements IBookService {
     public long getAvailableCopies(Long bookId) {
         return findById(bookId)
                 .map(book -> book.isAvailable() ? book.getQuantity() : 0).orElse(0);
+    }
+
+    @Override
+    public List<Book> findAvailableBooks() {
+        return bookRepository.findAvailableBooks();
     }
 }
