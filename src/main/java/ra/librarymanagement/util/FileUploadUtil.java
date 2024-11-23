@@ -21,7 +21,9 @@ public class FileUploadUtil {
         }
         // create file name if not exists
         // unique file name
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        String originalFilename = file.getOriginalFilename();
+        String fileName = System.currentTimeMillis() + "_" +
+                (originalFilename != null ? originalFilename : "unnamed");
         // thats mean we will save file in uploads/subDirectory/fileName
         try (InputStream inputStream = file.getInputStream()) {
             Path filePath = uploadPath.resolve(fileName);
@@ -35,8 +37,28 @@ public class FileUploadUtil {
 
     public static void deleteFile(String filePath) {
         try {
+
+            if (filePath.startsWith("/uploads/")) {
+                filePath = filePath.substring(8);
+            }
+
             Path path = Paths.get(UPLOAD_DIR + filePath);
             Files.deleteIfExists(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void createUploadDirectoryIfNeeded() {
+        try {
+            Path rootPath = Paths.get(UPLOAD_DIR);
+            if (!Files.exists(rootPath)) {
+                Files.createDirectories(rootPath);
+            }
+
+            // Tạo các thư mục con
+            Files.createDirectories(Paths.get(UPLOAD_DIR + "books"));
+            Files.createDirectories(Paths.get(UPLOAD_DIR + "avatars"));
         } catch (IOException e) {
             e.printStackTrace();
         }

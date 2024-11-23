@@ -4,6 +4,8 @@ package ra.librarymanagement.model.member;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
@@ -57,6 +59,7 @@ public class Member {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "member")
     private List<BorrowRecord> borrowRecord;
 

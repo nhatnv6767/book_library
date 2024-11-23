@@ -3,6 +3,7 @@ package ra.librarymanagement.model.BorrowRecord;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import ra.librarymanagement.model.book.Book;
@@ -23,11 +24,13 @@ public class BorrowRecord {
     @Column(name = "borrow_record_id")
     private Long borrowId;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     // @Column(name = "member")
     private Member member;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
     // @Column(name = "book")

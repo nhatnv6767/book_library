@@ -112,7 +112,7 @@ public class AppConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Xử lý uploads
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/");    // simple way to handle uploads
+                .addResourceLocations("file:src/main/resources/static/uploads/");   // simple way to handle uploads
 
         // handle static resources (css, js, images)
         registry.addResourceHandler("/static/**")
