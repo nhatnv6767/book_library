@@ -89,6 +89,16 @@ public class MemberController {
 
             member.setCreatedAt(existingMember.getCreatedAt());
             member.setJoinDate(existingMember.getJoinDate());
+            member.setUpdatedAt(LocalDateTime.now());
+
+
+            if (member.getDateOfBirth() == null && existingMember.getDateOfBirth() != null) {
+                member.setDateOfBirth(existingMember.getDateOfBirth());
+            }
+
+            if (member.getExpiryDate() == null && existingMember.getExpiryDate() != null) {
+                member.setExpiryDate(existingMember.getExpiryDate());
+            }
 
             // If the file is not empty, save the new file
             if (!file.isEmpty() && file != null) {
@@ -116,16 +126,8 @@ public class MemberController {
                          @RequestParam(required = false) MemberType memberType,
                          @RequestParam(required = false) MemberStatus status,
                          Model model) {
-        List<Member> members;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            members = memberService.findByFullNameContaining(keyword);
-        } else if (memberType != null) {
-            members = memberService.findByMemberType(memberType);
-        } else if (status != null) {
-            members = memberService.findByStatus(status);
-        } else {
-            members = memberService.findAll();
-        }
+        // If no search criteria is provided, return all members
+        List<Member> members = memberService.searchMembers(keyword, memberType, status);
 
         model.addAttribute("members", members);
         model.addAttribute("keyword", keyword);

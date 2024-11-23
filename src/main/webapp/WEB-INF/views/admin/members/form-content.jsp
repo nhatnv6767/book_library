@@ -111,9 +111,12 @@
                         <label class="label">
                             <span class="label-text">Date of Birth</span>
                         </label>
-                        <input type="datetime-local" name="dateOfBirth"
+                        <!-- <input type="datetime-local" name="dateOfBirth"
                                value="${member.dateOfBirth}"
-                               class="input input-bordered"/>
+                               class="input input-bordered"/> -->
+                               <input type="date" name="dateOfBirth"
+           value="${member.dateOfBirth != null ? member.dateOfBirth.toLocalDate() : ''}"
+           class="input input-bordered"/>
                     </div>
                 </div>
 
@@ -157,9 +160,12 @@
                     <label class="label">
                         <span class="label-text">Expiry Date</span>
                     </label>
-                    <input type="datetime-local" name="expiryDate"
+                    <!-- <input type="datetime-local" name="expiryDate"
                            value="${member.expiryDate}"
-                           class="input input-bordered"/>
+                           class="input input-bordered"/> -->
+                           <input type="date" name="expiryDate"
+           value="${member.expiryDate != null ? member.expiryDate.toLocalDate() : ''}"
+           class="input input-bordered"/>
                 </div>
 
                 <!-- Form Buttons -->

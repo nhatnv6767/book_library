@@ -164,4 +164,13 @@ public class MemberServiceImp implements IMemberService {
     public int countNewMembersThisMonth() {
         return memberRepository.countNewMembersThisMonth();
     }
+
+    @Override
+    public List<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status) {
+        return memberRepository.searchMembers(
+                keyword != null ? keyword.trim() : null,
+                memberType,
+                status
+        );
+    }
 }

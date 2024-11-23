@@ -22,6 +22,8 @@ public interface IMemberRepository {
 
     List<Member> findByMemberType(MemberType memberType);
 
+    List<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status);
+
     void save(Member member);
 
     void update(Member member);

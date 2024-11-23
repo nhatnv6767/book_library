@@ -14,8 +14,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -204,5 +206,42 @@ public class MemberRepositoryImp implements IMemberRepository {
             logger.error("Error counting new members this month: " + e.getMessage(), e);
             return 0;
         }
+    }
+
+    @Override
+    public List<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Member> query = cb.createQuery(Member.class);
+        Root<Member> root = query.from(Member.class);
+
+        // Tạo list các điều kiện
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Thêm điều kiện tìm theo keyword nếu có
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String searchKeyword = "%" + keyword.toLowerCase() + "%";
+            predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("memberCode")), searchKeyword),
+                    cb.like(cb.lower(root.get("email")), searchKeyword),
+                    cb.like(cb.lower(root.get("fullName")), searchKeyword)
+            ));
+        }
+
+        // Thêm điều kiện memberType nếu có
+        if (memberType != null) {
+            predicates.add(cb.equal(root.get("memberType"), memberType));
+        }
+
+        // Thêm điều kiện status nếu có
+        if (status != null) {
+            predicates.add(cb.equal(root.get("status"), status));
+        }
+
+        // Kết hợp tất cả điều kiện bằng AND
+        if (!predicates.isEmpty()) {
+            query.where(cb.and(predicates.toArray(new Predicate[0])));
+        }
+
+        return entityManager.createQuery(query).getResultList();
     }
 }
