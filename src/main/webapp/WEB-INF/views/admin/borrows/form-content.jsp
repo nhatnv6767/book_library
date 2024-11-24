@@ -104,6 +104,9 @@
                         '<span>' + escape(item.text) + '</span>' +
                         status +
                         '</div>';
+                },
+                no_results: function () {
+                    return '<div class="no-results">No members found</div>';
                 }
             },
             searchField: ['text', 'value'], // Add 'value' into searchField
@@ -114,6 +117,9 @@
                 text: opt.textContent.trim(),
                 dataset: opt.dataset
             })),
+            onInitialize: function () {
+                this.setValue(''); // Clear selection on initialize
+            },
             openOnFocus: true
         });
 
@@ -132,6 +138,9 @@
                         'Available: ' + item.dataset.quantity +
                         '</span>' +
                         '</div>';
+                },
+                no_results: function () {
+                    return '<div class="no-results">No members found</div>';
                 }
             },
             searchField: ['text', 'value'], // add 'value' into searchField
@@ -142,6 +151,9 @@
                 text: opt.textContent.trim(),
                 dataset: opt.dataset
             })),
+            onInitialize: function () {
+                this.setValue(''); // Clear selection on initialize
+            },
             openOnFocus: true
         });
     });
