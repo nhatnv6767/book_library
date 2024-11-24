@@ -133,7 +133,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#" onclick="confirmDelete(${book.bookId})" class="text-error">
+                                <a href="#" onclick="confirmDelete('${book.bookId}')" class="text-error">
                                     <i class="fas fa-trash"></i> Delete
                                 </a>
                             </li>
@@ -183,8 +183,13 @@
     }
 
     function deleteBook() {
+        console.log(bookIdToDelete);
         if (bookIdToDelete) {
-            window.location.href = `/admin/books/delete/${bookIdToDelete}`;
+            try {
+                window.location.href = "/admin/books/delete/" + bookIdToDelete;
+            } catch (e) {
+                console.log(e);
+            }
         }
     }
 </script>

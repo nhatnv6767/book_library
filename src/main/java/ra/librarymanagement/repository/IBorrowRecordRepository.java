@@ -46,4 +46,9 @@ public interface IBorrowRecordRepository {
     List<RecentActivity> getRecentActivities(int limit);
 
     List<Alert> getActiveAlerts();
+
+    List<BorrowRecord> searchBorrowRecords(String memberKeyword,
+                                           BorrowStatus status,
+                                           LocalDateTime startDate,
+                                           LocalDateTime endDate);
 }

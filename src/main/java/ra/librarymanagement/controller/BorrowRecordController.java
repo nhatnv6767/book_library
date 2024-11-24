@@ -1,19 +1,26 @@
 package ra.librarymanagement.controller;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
+import ra.librarymanagement.model.book.Book;
+import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.service.IBookService;
 import ra.librarymanagement.service.IBorrowRecordService;
 import ra.librarymanagement.service.IMemberService;
+import ra.librarymanagement.service.imp.BorrowRecordServiceImp;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/borrows")
@@ -32,14 +39,34 @@ public class BorrowRecordController {
     @GetMapping
     public String index(Model model) {
         model.addAttribute("borrows", borrowRecordService.findAll());
+        model.addAttribute("statuses", BorrowStatus.values());
         return "admin/borrows/index";
     }
 
     @GetMapping("/add")
     public String showAddForm(Model model) {
+
+        List<Member> members = memberService.findAll();
+        List<Book> availableBooks = bookService.findAvailableBooks();
+
+        Map<Long, Long> memberActiveBorrows = new HashMap<>();
+        for (Member member : members) {
+            long activeBorrows = borrowRecordService.countActiveBooksByMember(member.getMemberId());
+            memberActiveBorrows.put(member.getMemberId(), activeBorrows);
+        }
+
+
         model.addAttribute("borrow", new BorrowRecord());
-        model.addAttribute("books", bookService.findAvailableBooks());
-        model.addAttribute("members", memberService.findAll());
+        model.addAttribute("books", availableBooks);
+        model.addAttribute("members", members);
+
+        model.addAttribute("maxBorrowDays", LibraryConstants.DEFAULT_BORROW_DAYS);
+        model.addAttribute("lateFeePerDay", LibraryConstants.DAILY_FINE);
+        // get max books for each member type
+        model.addAttribute("regularMaxBooks", LibraryConstants.REGULAR_MEMBER_MAX_BOOKS);
+        model.addAttribute("vipMaxBooks", LibraryConstants.VIP_MEMBER_MAX_BOOKS);
+        model.addAttribute("studentMaxBooks", LibraryConstants.STUDENT_MEMBER_MAX_BOOKS);
+        model.addAttribute("memberActiveBorrows", memberActiveBorrows);
         return "admin/borrows/form";
     }
 
@@ -103,24 +130,22 @@ public class BorrowRecordController {
     }
 
     @GetMapping("/search")
-    public String search(@RequestParam(required = false) String keyword,
+    public String search(@RequestParam(required = false) String memberSearch,
                          @RequestParam(required = false) BorrowStatus status,
                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
                          Model model) {
-        List<BorrowRecord> borrows;
-        if (startDate != null && endDate != null) {
-            borrows = borrowRecordService.findByDateRange(startDate, endDate);
-        } else if (status != null) {
-            borrows = borrowRecordService.findByStatus(status);
-        } else {
-            borrows = borrowRecordService.findAll();
-        }
+        List<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(memberSearch, status, startDate, endDate);
+        // borrows.forEach(borrow -> {
+        //     Hibernate.initialize(borrow.getMember());
+        // });
+
         model.addAttribute("borrows", borrows);
         model.addAttribute("statuses", BorrowStatus.values());
         model.addAttribute("selectedStatus", status);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
+        model.addAttribute("memberSearch", memberSearch);
         return "admin/borrows/index";
     }
 }

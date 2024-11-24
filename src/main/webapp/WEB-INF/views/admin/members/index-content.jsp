@@ -223,7 +223,11 @@
 
     function deleteMember() {
         if (memberIdToDelete) {
-            window.location.href = `/admin/members/delete/${memberIdToDelete}`;
+            try {
+                window.location.href = "/admin/members/delete/" + memberIdToDelete;
+            } catch (e) {
+                console.log(e);
+            }
         }
     }
 </script>

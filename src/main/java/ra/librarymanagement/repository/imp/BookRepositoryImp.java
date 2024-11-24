@@ -119,7 +119,7 @@ public class BookRepositoryImp implements IBookRepository {
         // SELECT * FROM books WHERE quantity > 0
         Predicate quantityPredicate = result.cb.greaterThan(result.root.get("quantity"), 0);
         // SELECT * FROM books WHERE status = 'AVAILABLE'
-        Predicate statusPredicate = result.cb.equal(result.root.get("status"), BookStatus.AVAILABLE);
+        Predicate statusPredicate = result.cb.equal(result.root.get("bookStatus"), BookStatus.AVAILABLE);
         // SELECT * FROM books WHERE available = true AND quantity > 0 AND status = 'AVAILABLE
         result.query.where(result.cb.and(availablePredicate, quantityPredicate, statusPredicate));
 
