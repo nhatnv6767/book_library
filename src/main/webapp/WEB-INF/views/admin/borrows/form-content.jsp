@@ -174,12 +174,10 @@
             placeholder: "Search for member...",
             render: {
                 option: function (item, escape) {
-                    // Chỉ hiển thị badge nếu status là ACTIVE
                     var statusBadge = item.dataset.status === 'ACTIVE' ?
                         '<span class="badge badge-success badge-sm ml-2">Active</span>' :
                         '<span class="badge badge-error badge-sm ml-2">Inactive</span>';
 
-                    // Hiển thị số lượng sách đang mượn nếu là member active
                     var borrowsBadge = item.dataset.status === 'ACTIVE' ?
                         `<span class="badge badge-ghost badge-sm ml-2">
                     Borrows: ${item.dataset.activeBorrows}
@@ -227,19 +225,21 @@
             placeholder: "Search for book...",
             render: {
                 option: function (item, escape) {
-                    // Chỉ hiển thị quantity và badge tương ứng
                     const quantity = parseInt(item.dataset.quantity);
-                    const quantityBadge = quantity > 0 ?
-                        `<span class="badge badge-success badge-sm ml-2">Available: ${quantity}</span>` :
-                        `<span class="badge badge-error badge-sm ml-2">Out of stock</span>`;
+                    const author = item.dataset.author;
 
-                    return '<div class="d-flex align-items-center">' +
-                        '<span>' + escape(item.text) + '</span>' +
-                        quantityBadge +
+                    return '<div class="flex items-center justify-between w-full">' +
+                        '<div class="flex flex-col">' +
+                        '<span class="font-medium">' + escape(item.text) + '</span>' +
+                        '<span class="text-sm opacity-70">' + escape(author) + '</span>' +
+                        '</div>' +
+                        '<span class="badge ' + (quantity > 0 ? 'badge-success' : 'badge-error') + ' badge-sm">' +
+                        (quantity > 0 ? 'Available: ' + quantity : 'Out of stock') +
+                        '</span>' +
                         '</div>';
                 },
                 no_results: function () {
-                    return '<div class="no-results">No books found</div>';
+                    return '<div class="text-center">No books found</div>';
                 }
             },
             searchField: ['text', 'value'],
@@ -264,6 +264,9 @@
                 validateForm();
             }
         });
+
+        // Call validateForm after initializing TomSelect instances
+        validateForm();
     });
 
     function hidePreview(id) {
@@ -279,7 +282,6 @@
         const email = memberOption.dataset.email;
         const phone = memberOption.dataset.phone;
 
-        // Update status badge - chỉ hiển thị khi ACTIVE
         const statusElement = document.getElementById('member-status');
         if (status === 'ACTIVE') {
             statusElement.className = 'badge badge-success';
@@ -289,14 +291,10 @@
             statusElement.textContent = 'Inactive';
         }
 
-        // Update type badge
         document.getElementById('member-type').textContent = type;
-
-        // Update contact info
         document.getElementById('member-email').textContent = email || 'N/A';
         document.getElementById('member-phone').textContent = phone || 'N/A';
 
-        // Update active borrows - chỉ hiển thị và tính toán khi member ACTIVE
         const borrowsElement = document.getElementById('member-active-borrows');
         const borrowLimitWarning = document.getElementById('borrow-limit-warning');
 
@@ -318,18 +316,47 @@
         const preview = document.getElementById('book-preview');
         const quantity = parseInt(bookOption.dataset.quantity);
 
-        document.getElementById('book-isbn').textContent = bookOption.dataset.isbn;
-        document.getElementById('book-author').textContent = bookOption.dataset.author;
-        document.getElementById('book-category').textContent = bookOption.dataset.category;
-        document.getElementById('book-publisher').textContent = bookOption.dataset.publisher || 'N/A';
+        document.getElementById('book-isbn').innerHTML = `
+        <i class="fas fa-barcode mr-2"></i>
+        <span class="font-medium">${bookOption.dataset.isbn || 'N/A'}</span>
+    `;
+
+        document.getElementById('book-author').innerHTML = `
+        <i class="fas fa-user-edit mr-2"></i>
+        <span class="font-medium">${bookOption.dataset.author || 'N/A'}</span>
+    `;
+
+        document.getElementById('book-category').innerHTML = `
+        <i class="fas fa-tag mr-2"></i>
+        <span class="badge badge-ghost">${bookOption.dataset.category || 'N/A'}</span>
+    `;
+
+        document.getElementById('book-publisher').innerHTML = `
+        <i class="fas fa-building mr-2"></i>
+        <span class="font-medium">${bookOption.dataset.publisher || 'N/A'}</span>
+    `;
 
         const quantityElement = document.getElementById('book-quantity');
-        quantityElement.textContent = quantity;
-        quantityElement.className = quantity > 0 ? 'text-success' : 'text-error';
+        if (quantity > 0) {
+            quantityElement.innerHTML = `
+            <span class="badge badge-success">
+                <i class="fas fa-check-circle mr-1"></i>
+                Available: ${quantity}
+            </span>
+        `;
+        } else {
+            quantityElement.innerHTML = `
+            <span class="badge badge-error">
+                <i class="fas fa-times-circle mr-1"></i>
+                Out of stock
+            </span>
+        `;
+        }
 
         document.getElementById('quantity-warning').classList.toggle('hidden', quantity > 0);
 
         preview.classList.remove('hidden');
+        preview.classList.add('animate__animated', 'animate__fadeIn');
     }
 
     function getMaxBooksForType(type) {
@@ -346,15 +373,27 @@
     function validateForm() {
         const submitBtn = document.getElementById('submit-btn');
 
-        const memberOption = memberSelect.options[memberSelect.getValue()];
-        const bookOption = bookSelect.options[bookSelect.getValue()];
+        if (!memberSelect || !bookSelect) {
+            submitBtn.disabled = true;
+            return;
+        }
+
+        const memberValue = memberSelect.getValue();
+        const bookValue = bookSelect.getValue();
+
+        if (!memberValue || !bookValue) {
+            submitBtn.disabled = true;
+            return;
+        }
+
+        const memberOption = memberSelect.options[memberValue];
+        const bookOption = bookSelect.options[bookValue];
 
         if (!memberOption || !bookOption) {
             submitBtn.disabled = true;
             return;
         }
 
-        // Kiểm tra status === 'ACTIVE' trước
         if (memberOption.dataset.status !== 'ACTIVE') {
             submitBtn.disabled = true;
             return;
@@ -364,7 +403,6 @@
         const activeBorrows = parseInt(memberOption.dataset.activeBorrows);
         const quantity = parseInt(bookOption.dataset.quantity);
 
-        // Chỉ check các điều kiện khác khi member ACTIVE
         const isValid = activeBorrows < getMaxBooksForType(type) && quantity > 0;
 
         submitBtn.disabled = !isValid;
