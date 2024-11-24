@@ -32,6 +32,7 @@ public class BorrowRecordController {
     @GetMapping
     public String index(Model model) {
         model.addAttribute("borrows", borrowRecordService.findAll());
+        model.addAttribute("statuses", BorrowStatus.values());
         return "admin/borrows/index";
     }
 

@@ -9,16 +9,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<!-- Debug info -->
-<div>
-    <p>Debug: Checking if data exists</p>
-    <p>Borrows null? ${borrows == null}</p>
-    <p>Borrows empty? ${empty borrows}</p>
-    <c:if test="${not empty borrows}">
-        <p>Number of borrows: ${borrows.size()}</p>
-    </c:if>
-</div>
-
 
 <div class="bg-base-100 p-4 rounded-lg shadow mb-6">
     <form action="/admin/borrows/search" method="GET" class="space-y-4">
@@ -90,8 +80,6 @@
                             <div class="flex items-center space-x-3">
                                 <div class="avatar">
                                     <div class="mask mask-squircle w-12 h-12">
-                                        <!-- <img src="${borrow.member.avatar != null ? borrow.member.avatar : '/static/images/default-avatar.png'}"
-                                             alt="${borrow.member.fullName}"/> -->
                                         <img src="${empty borrow.member.avatar ? '/static/images/default-avatar.png' : borrow.member.avatar}"
                                              alt="${borrow.member.fullName}"/>
                                     </div>
@@ -161,7 +149,7 @@
 
                                     <c:if test="${borrow.status == 'BORROWING'}">
                                         <li>
-                                            <a href="#" onclick="showReturnModal(${borrow.borrowId})"
+                                            <a href="#" onclick="showReturnModal('${borrow.borrowId}')"
                                                class="text-success">
                                                 <i class="fas fa-undo"></i> Return Book
                                             </a>
@@ -169,7 +157,7 @@
 
                                         <c:if test="${borrow.extensionCount < 2}">
                                             <li>
-                                                <a href="#" onclick="showExtendModal(${borrow.borrowId})"
+                                                <a href="#" onclick="showExtendModal('${borrow.borrowId}')"
                                                    class="text-warning">
                                                     <i class="fas fa-clock"></i> Extend Period
                                                 </a>
@@ -177,7 +165,7 @@
                                         </c:if>
 
                                         <li>
-                                            <a href="#" onclick="showLostModal(${borrow.borrowId})" class="text-error">
+                                            <a href="#" onclick="showLostModal('${borrow.borrowId}')" class="text-error">
                                                 <i class="fas fa-exclamation-triangle"></i> Report Lost
                                             </a>
                                         </li>
@@ -252,72 +240,104 @@
 </dialog>
 
 
-<!-- JavaScript for modals -->
-<c:if test="${not empty borrows}">
-    <script>
-        window.onerror = function (msg, url, line) {
-            console.error(`JavaScript error: ${msg}\nURL: ${url}\nLine: ${line}`);
-            return false;
-        };
+<script>
+    let currentBorrowId = null;
 
-        // Log khi DOM đã load
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('DOM loaded, checking elements:');
-            console.log('return-modal:', document.getElementById('return-modal'));
-            console.log('extend-modal:', document.getElementById('extend-modal'));
-            console.log('lost-modal:', document.getElementById('lost-modal'));
-        });
-
-        let currentBorrowId = null;
-
-        function showReturnModal(borrowId) {
-            currentBorrowId = borrowId;
-            document.getElementById('return-modal').showModal();
+    function showReturnModal(borrowId) {
+        try {
+            const modal = document.getElementById('return-modal');
+            if (modal) {
+                currentBorrowId = borrowId;
+                modal.showModal();
+            }
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        function closeReturnModal() {
-            document.getElementById('return-modal').close();
-            currentBorrowId = null;
+    function closeReturnModal() {
+        try {
+            const modal = document.getElementById('return-modal');
+            if (modal) {
+                modal.close();
+                currentBorrowId = null;
+            }
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        function returnBook() {
+    function returnBook() {
+        try {
             if (currentBorrowId) {
                 const condition = document.getElementById('returnCondition').value;
-                window.location.href = `/admin/borrows/return/${currentBorrowId}?condition=${encodeURIComponent(condition)}`;
+                window.location.href = "/admin/borrows/return/" + currentBorrowId+ "?condition=" + encodeURIComponent(condition);
             }
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        function showExtendModal(borrowId) {
+    function showExtendModal(borrowId) {
+        try {
             currentBorrowId = borrowId;
             document.getElementById('extend-modal').showModal();
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        function closeExtendModal() {
+    function closeExtendModal() {
+        try {
             document.getElementById('extend-modal').close();
             currentBorrowId = null;
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        function extendPeriod() {
+    function extendPeriod() {
+        try {
             if (currentBorrowId) {
-                window.location.href = `/admin/borrows/extend/${currentBorrowId}`;
+                window.location.href = "/admin/borrows/extend/" + currentBorrowId;
             }
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        function showLostModal(borrowId) {
+
+    function showLostModal(borrowId) {
+        try {
             currentBorrowId = borrowId;
-            document.getElementById('lost-modal').showModal();
-        }
+            const modal = document.getElementById('lost-modal');
+            if (modal) {
+                modal.showModal();
+            }
 
-        function closeLostModal() {
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    function closeLostModal() {
+        try {
             document.getElementById('lost-modal').close();
             currentBorrowId = null;
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        function reportLost() {
+    function reportLost() {
+        try {
             if (currentBorrowId) {
                 const notes = document.getElementById('lostNotes').value;
-                window.location.href = `/admin/borrows/lost/${currentBorrowId}?notes=${encodeURIComponent(notes)}`;
+                window.location.href = "/admin/borrows/lost/" + currentBorrowId+ "?notes=" + encodeURIComponent(notes);
             }
+        } catch (e) {
+            console.log(e);
         }
-    </script>
-</c:if>
+    }
+
+</script>
