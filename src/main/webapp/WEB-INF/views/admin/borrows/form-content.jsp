@@ -313,31 +313,26 @@
     }
 
     function updateBookPreview(bookOption) {
+
         const preview = document.getElementById('book-preview');
+        console.log('Book data:', {
+            isbn: bookOption.dataset.isbn,
+            author: bookOption.dataset.author,
+            category: bookOption.dataset.category,
+            publisher: bookOption.dataset.publisher,
+            quantity: bookOption.dataset.quantity
+        });
+
+        document.getElementById('book-isbn').textContent = bookOption.dataset.isbn || 'N/A';
+        document.getElementById('book-author').textContent = bookOption.dataset.author || 'N/A';
+        document.getElementById('book-category').textContent = bookOption.dataset.category || 'N/A';
+        document.getElementById('book-publisher').textContent = bookOption.dataset.publisher || 'N/A';
+
+
         const quantity = parseInt(bookOption.dataset.quantity);
-
-        document.getElementById('book-isbn').innerHTML = `
-        <i class="fas fa-barcode mr-2"></i>
-        <span class="font-medium">${bookOption.dataset.isbn || 'N/A'}</span>
-    `;
-
-        document.getElementById('book-author').innerHTML = `
-        <i class="fas fa-user-edit mr-2"></i>
-        <span class="font-medium">${bookOption.dataset.author || 'N/A'}</span>
-    `;
-
-        document.getElementById('book-category').innerHTML = `
-        <i class="fas fa-tag mr-2"></i>
-        <span class="badge badge-ghost">${bookOption.dataset.category || 'N/A'}</span>
-    `;
-
-        document.getElementById('book-publisher').innerHTML = `
-        <i class="fas fa-building mr-2"></i>
-        <span class="font-medium">${bookOption.dataset.publisher || 'N/A'}</span>
-    `;
-
         const quantityElement = document.getElementById('book-quantity');
         if (quantity > 0) {
+            console.log("Quantity", quantity)
             quantityElement.innerHTML = `
             <span class="badge badge-success">
                 <i class="fas fa-check-circle mr-1"></i>

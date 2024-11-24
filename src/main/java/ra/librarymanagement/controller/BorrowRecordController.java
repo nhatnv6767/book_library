@@ -49,6 +49,16 @@ public class BorrowRecordController {
         List<Member> members = memberService.findAll();
         List<Book> availableBooks = bookService.findAvailableBooks();
 
+        // availableBooks.forEach(book -> {
+        //     System.out.println("Book: " + book.getTitle());
+        //     System.out.println("ISBN: " + book.getIsbn());
+        //     System.out.println("Author: " + book.getAuthor());
+        //     System.out.println("Category: " + book.getCategory());
+        //     System.out.println("Publisher: " + book.getPublisher());
+        //     System.out.println("Quantity: " + book.getQuantity());
+        //     System.out.println("-------------------");
+        // });
+
         Map<Long, Long> memberActiveBorrows = new HashMap<>();
         for (Member member : members) {
             long activeBorrows = borrowRecordService.countActiveBooksByMember(member.getMemberId());
