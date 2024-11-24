@@ -25,7 +25,7 @@
                                 <c:forEach items="${members}" var="member">
                                     <option value="${member.memberId}">
                                         <div class="flex items-center">
-                                            ${member.memberCode} - ${member.fullName}
+                                                ${member.memberCode} - ${member.fullName}
                                             <c:if test="${member.status == 'ACTIVE'}">
                                                 <span class="badge badge-success badge-sm ml-2">Active</span>
                                             </c:if>
@@ -48,7 +48,7 @@
                                 <option value="">Select Book</option>
                                 <c:forEach items="${books}" var="book">
                                     <option value="${book.bookId}" class="flex items-center justify-between">
-                                        ${book.title}
+                                            ${book.title}
                                         <span class="badge badge-info badge-sm ml-2">
                                             Available: ${book.quantity}
                                         </span>
@@ -60,16 +60,24 @@
                 </div>
 
                 <!-- Borrow Rules Notice -->
-                <div class="alert alert-info shadow-lg mt-4">
-                    <div>
-                        <i class="fas fa-info-circle"></i>
-                        <div>
-                            <h3 class="font-bold">Borrowing Rules</h3>
-                            <ul class="list-disc list-inside">
-                                <li>Maximum borrow duration: 14 days</li>
-                                <li>Late return fee: 5,000đ/day</li>
-                                <li>Maximum books per member: 3</li>
-                            </ul>
+                <div class="bg-info/10 rounded-lg p-4 shadow-lg mt-4">
+                    <div class="animate__animated animate__fadeIn animate__slower">
+                        <i class="fas fa-info-circle text-info"></i>
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-lg">Borrowing Rules</h3>
+                            <div class="pl-4">
+                                <ul class="list-disc space-y-1">
+                                    <li class="animate__animated animate__fadeInLeft animate__delay-1s animate__slower">
+                                        Maximum borrow duration: 14 days
+                                    </li>
+                                    <li class="animate__animated animate__fadeInLeft animate__delay-2s animate__slower">
+                                        Late return fee: 5,000đ/day
+                                    </li>
+                                    <li class="animate__animated animate__fadeInLeft animate__delay-3s animate__slower">
+                                        Maximum books per member: 3
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
