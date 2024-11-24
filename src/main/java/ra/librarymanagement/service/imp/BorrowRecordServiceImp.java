@@ -1,5 +1,6 @@
 package ra.librarymanagement.service.imp;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -274,7 +275,12 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BorrowRecord> searchBorrowRecords(String memberKeyword, BorrowStatus status, LocalDateTime startDate, LocalDateTime endDate) {
-        return borrowRecordRepository.searchBorrowRecords(memberKeyword, status, startDate, endDate);
+        List<BorrowRecord> borrows = borrowRecordRepository.searchBorrowRecords(memberKeyword, status, startDate, endDate);
+        borrows.forEach(borrow -> {
+            Hibernate.initialize(borrow.getMember());
+        });
+        return borrows;
     }
 }
