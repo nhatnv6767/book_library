@@ -66,7 +66,6 @@
         </div>
     </form>
 </div>
-
 <!-- Borrow Records Table -->
 <div class="overflow-x-auto bg-base-100 rounded-lg shadow">
     <c:choose>
@@ -191,136 +190,134 @@
                 </tbody>
             </table>
 
-
-            <!-- Return Book Modal -->
-            <dialog id="return-modal" class="modal">
-                <form method="dialog" class="modal-box">
-                    <h3 class="font-bold text-lg">Return Book</h3>
-                    <div class="py-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Book Condition</span>
-                            </label>
-                            <textarea id="returnCondition" class="textarea textarea-bordered"
-                                      placeholder="Enter book condition on return"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-action">
-                        <button class="btn" onclick="closeReturnModal()">Cancel</button>
-                        <button class="btn btn-success" onclick="returnBook()">Return Book</button>
-                    </div>
-                </form>
-            </dialog>
-
-            <!-- Extend Period Modal -->
-            <dialog id="extend-modal" class="modal">
-                <form method="dialog" class="modal-box">
-                    <h3 class="font-bold text-lg">Extend Borrow Period</h3>
-                    <p class="py-4">Are you sure you want to extend the borrow period for this book?</p>
-                    <div class="modal-action">
-                        <button class="btn" onclick="closeExtendModal()">Cancel</button>
-                        <button class="btn btn-warning" onclick="extendPeriod()">Extend Period</button>
-                    </div>
-                </form>
-            </dialog>
-
-            <!-- Report Lost Modal -->
-            <dialog id="lost-modal" class="modal">
-                <form method="dialog" class="modal-box">
-                    <h3 class="font-bold text-lg text-error">Report Book as Lost</h3>
-                    <div class="py-4">
-                        <div class="alert alert-warning mb-4">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>Reporting a book as lost will incur a fine.</span>
-                        </div>
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Additional Notes</span>
-                            </label>
-                            <textarea id="lostNotes" class="textarea textarea-bordered"
-                                      placeholder="Enter any additional notes"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-action">
-                        <button class="btn" onclick="closeLostModal()">Cancel</button>
-                        <button class="btn btn-error" onclick="reportLost()">Report Lost</button>
-                    </div>
-                </form>
-            </dialog>
-
-            <!-- JavaScript for modals -->
-            <c:if test="${not empty borrows}">
-                <script>
-                    window.onerror = function (msg, url, line) {
-                        console.error(`JavaScript error: ${msg}\nURL: ${url}\nLine: ${line}`);
-                        return false;
-                    };
-
-                    // Log khi DOM đã load
-                    document.addEventListener('DOMContentLoaded', function () {
-                        console.log('DOM loaded, checking elements:');
-                        console.log('return-modal:', document.getElementById('return-modal'));
-                        console.log('extend-modal:', document.getElementById('extend-modal'));
-                        console.log('lost-modal:', document.getElementById('lost-modal'));
-                    });
-
-                    let currentBorrowId = null;
-
-                    function showReturnModal(borrowId) {
-                        currentBorrowId = borrowId;
-                        document.getElementById('return-modal').showModal();
-                    }
-
-                    function closeReturnModal() {
-                        document.getElementById('return-modal').close();
-                        currentBorrowId = null;
-                    }
-
-                    function returnBook() {
-                        if (currentBorrowId) {
-                            const condition = document.getElementById('returnCondition').value;
-                            window.location.href = `/admin/borrows/return/${currentBorrowId}?condition=${encodeURIComponent(condition)}`;
-                        }
-                    }
-
-                    function showExtendModal(borrowId) {
-                        currentBorrowId = borrowId;
-                        document.getElementById('extend-modal').showModal();
-                    }
-
-                    function closeExtendModal() {
-                        document.getElementById('extend-modal').close();
-                        currentBorrowId = null;
-                    }
-
-                    function extendPeriod() {
-                        if (currentBorrowId) {
-                            window.location.href = `/admin/borrows/extend/${currentBorrowId}`;
-                        }
-                    }
-
-                    function showLostModal(borrowId) {
-                        currentBorrowId = borrowId;
-                        document.getElementById('lost-modal').showModal();
-                    }
-
-                    function closeLostModal() {
-                        document.getElementById('lost-modal').close();
-                        currentBorrowId = null;
-                    }
-
-                    function reportLost() {
-                        if (currentBorrowId) {
-                            const notes = document.getElementById('lostNotes').value;
-                            window.location.href = `/admin/borrows/lost/${currentBorrowId}?notes=${encodeURIComponent(notes)}`;
-                        }
-                    }
-                </script>
-            </c:if>
-
         </c:when>
     </c:choose>
 </div>
 
 
+<!-- Return Book Modal -->
+<dialog id="return-modal" class="modal">
+    <form method="dialog" class="modal-box">
+        <h3 class="font-bold text-lg">Return Book</h3>
+        <div class="py-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Book Condition</span>
+                </label>
+                <textarea id="returnCondition" class="textarea textarea-bordered"
+                          placeholder="Enter book condition on return"></textarea>
+            </div>
+        </div>
+        <div class="modal-action">
+            <button class="btn" onclick="closeReturnModal()">Cancel</button>
+            <button class="btn btn-success" onclick="returnBook()">Return Book</button>
+        </div>
+    </form>
+</dialog>
 
+<!-- Extend Period Modal -->
+<dialog id="extend-modal" class="modal">
+    <form method="dialog" class="modal-box">
+        <h3 class="font-bold text-lg">Extend Borrow Period</h3>
+        <p class="py-4">Are you sure you want to extend the borrow period for this book?</p>
+        <div class="modal-action">
+            <button class="btn" onclick="closeExtendModal()">Cancel</button>
+            <button class="btn btn-warning" onclick="extendPeriod()">Extend Period</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Report Lost Modal -->
+<dialog id="lost-modal" class="modal">
+    <form method="dialog" class="modal-box">
+        <h3 class="font-bold text-lg text-error">Report Book as Lost</h3>
+        <div class="py-4">
+            <div class="alert alert-warning mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Reporting a book as lost will incur a fine.</span>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Additional Notes</span>
+                </label>
+                <textarea id="lostNotes" class="textarea textarea-bordered"
+                          placeholder="Enter any additional notes"></textarea>
+            </div>
+        </div>
+        <div class="modal-action">
+            <button class="btn" onclick="closeLostModal()">Cancel</button>
+            <button class="btn btn-error" onclick="reportLost()">Report Lost</button>
+        </div>
+    </form>
+</dialog>
+
+
+<!-- JavaScript for modals -->
+<c:if test="${not empty borrows}">
+    <script>
+        window.onerror = function (msg, url, line) {
+            console.error(`JavaScript error: ${msg}\nURL: ${url}\nLine: ${line}`);
+            return false;
+        };
+
+        // Log khi DOM đã load
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM loaded, checking elements:');
+            console.log('return-modal:', document.getElementById('return-modal'));
+            console.log('extend-modal:', document.getElementById('extend-modal'));
+            console.log('lost-modal:', document.getElementById('lost-modal'));
+        });
+
+        let currentBorrowId = null;
+
+        function showReturnModal(borrowId) {
+            currentBorrowId = borrowId;
+            document.getElementById('return-modal').showModal();
+        }
+
+        function closeReturnModal() {
+            document.getElementById('return-modal').close();
+            currentBorrowId = null;
+        }
+
+        function returnBook() {
+            if (currentBorrowId) {
+                const condition = document.getElementById('returnCondition').value;
+                window.location.href = `/admin/borrows/return/${currentBorrowId}?condition=${encodeURIComponent(condition)}`;
+            }
+        }
+
+        function showExtendModal(borrowId) {
+            currentBorrowId = borrowId;
+            document.getElementById('extend-modal').showModal();
+        }
+
+        function closeExtendModal() {
+            document.getElementById('extend-modal').close();
+            currentBorrowId = null;
+        }
+
+        function extendPeriod() {
+            if (currentBorrowId) {
+                window.location.href = `/admin/borrows/extend/${currentBorrowId}`;
+            }
+        }
+
+        function showLostModal(borrowId) {
+            currentBorrowId = borrowId;
+            document.getElementById('lost-modal').showModal();
+        }
+
+        function closeLostModal() {
+            document.getElementById('lost-modal').close();
+            currentBorrowId = null;
+        }
+
+        function reportLost() {
+            if (currentBorrowId) {
+                const notes = document.getElementById('lostNotes').value;
+                window.location.href = `/admin/borrows/lost/${currentBorrowId}?notes=${encodeURIComponent(notes)}`;
+            }
+        }
+    </script>
+</c:if>
