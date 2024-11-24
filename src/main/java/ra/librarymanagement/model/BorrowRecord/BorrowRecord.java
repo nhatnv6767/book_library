@@ -52,6 +52,10 @@ public class BorrowRecord {
     @Column(name = "fine", nullable = false, precision = 10, scale = 2)
     private BigDecimal fine = BigDecimal.ZERO;
 
+    public BigDecimal getFine(){
+        return fine == null ? BigDecimal.ZERO : fine;
+    }
+
     @Column(name = "note", nullable = true, length = 500)
     private String note;
 

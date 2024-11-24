@@ -128,7 +128,7 @@
                     </c:if>
                 </td>
                 <td>
-                    <c:if test="${borrow.fine != null && borrow.fine.compareTo(BigDecimal.ZERO) > 0}">
+                    <c:if test="${not empty borrow.fine && borrow.fine gt 0}">
                         <div class="text-error font-semibold">
                                 ${borrow.fine} đ
                         </div>
