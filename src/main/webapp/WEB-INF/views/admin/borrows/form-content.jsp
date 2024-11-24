@@ -19,21 +19,16 @@
                                 <i class="fas fa-user text-primary mr-2"></i>Member
                             </span>
                         </label>
-                        <div class="relative">
-                            <select name="memberId" class="select select-bordered w-full" required>
-                                <option value="">Select Member</option>
-                                <c:forEach items="${members}" var="member">
-                                    <option value="${member.memberId}">
-                                        <div class="flex items-center">
-                                                ${member.memberCode} - ${member.fullName}
-                                            <c:if test="${member.status == 'ACTIVE'}">
-                                                <span class="badge badge-success badge-sm ml-2">Active</span>
-                                            </c:if>
-                                        </div>
-                                    </option>
-                                </c:forEach>
-                            </select>
-                        </div>
+                        <select id="member-select" name="memberId" required>
+                            <option value="">Search for member...</option>
+                            <c:forEach items="${members}" var="member">
+                                <option value="${member.memberId}"
+                                        data-code="${member.memberCode}"
+                                        data-status="${member.status}">
+                                        ${member.memberCode} - ${member.fullName}
+                                </option>
+                            </c:forEach>
+                        </select>
                     </div>
 
                     <!-- Book Selection -->
@@ -43,19 +38,16 @@
                                 <i class="fas fa-book text-primary mr-2"></i>Book
                             </span>
                         </label>
-                        <div class="relative">
-                            <select name="bookId" class="select select-bordered w-full" required>
-                                <option value="">Select Book</option>
-                                <c:forEach items="${books}" var="book">
-                                    <option value="${book.bookId}" class="flex items-center justify-between">
-                                            ${book.title}
-                                        <span class="badge badge-info badge-sm ml-2">
-                                            Available: ${book.quantity}
-                                        </span>
-                                    </option>
-                                </c:forEach>
-                            </select>
-                        </div>
+                        <select id="book-select" name="bookId" required>
+                            <option value="">Search for book...</option>
+                            <c:forEach items="${books}" var="book">
+                                <option value="${book.bookId}"
+                                        data-quantity="${book.quantity}"
+                                        data-isbn="${book.isbn}">
+                                        ${book.title}
+                                </option>
+                            </c:forEach>
+                        </select>
                     </div>
                 </div>
 
@@ -95,3 +87,46 @@
         </div>
     </div>
 </div>
+
+<!-- Initialize Tom Select -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new TomSelect('#member-select', {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            },
+            render: {
+                option: function (item, escape) {
+                    var status = item.dataset.status === 'ACTIVE' ? 
+                        '<span class="badge badge-success badge-sm ml-2">Active</span>' : '';
+                    return '<div class="d-flex align-items-center">' +
+                           '<span>' + escape(item.text) + '</span>' + 
+                           status +
+                           '</div>';
+                }
+            },
+            searchField: ['text']
+        });
+
+        new TomSelect('#book-select', {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            },
+            render: {
+                option: function (item, escape) {
+                    return '<div class="d-flex align-items-center">' +
+                           '<span>' + escape(item.text) + '</span>' +
+                           '<span class="badge badge-info badge-sm ml-2">' +
+                           'Available: ' + item.dataset.quantity +
+                           '</span>' +
+                           '</div>';
+                }
+            },
+            searchField: ['text']
+        });
+    });
+</script>

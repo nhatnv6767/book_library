@@ -4,6 +4,6 @@
 
 <jsp:include page="../../shared/layout.jsp">
     <jsp:param name="title" value="New Borrow Record"/>
-    <jsp:param name="content" value="/WEB-INF/views/admin/borrows/form-content.jsp"/>
+    <jsp:param name="content" value="../admin/borrows/form-content.jsp"/>
     <jsp:param name="active" value="borrows"/>
 </jsp:include>
