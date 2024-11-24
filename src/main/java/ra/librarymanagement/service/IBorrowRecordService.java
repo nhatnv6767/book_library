@@ -55,4 +55,6 @@ public interface IBorrowRecordService {
                                            BorrowStatus status,
                                            LocalDateTime startDate,
                                            LocalDateTime endDate);
+
+    long countActiveBooksByMember(Long memberId);
 }

@@ -4,6 +4,7 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.book.Book;
@@ -38,11 +39,6 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
         this.bookService = bookService;
         this.memberService = memberService;
     }
-
-    private static final int DEFAULT_BORROW_DAYS = 14;
-    private static final int MAX_EXTENSIONS = 2;
-    private static final BigDecimal DAILY_FINE = new BigDecimal("1000"); // 1000 VND / day
-    private static final BigDecimal LOST_BOOK_FINE = new BigDecimal("100000"); // 100000 VND
 
     @Override
     public List<BorrowRecord> findAll() {
@@ -100,7 +96,7 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
         borrowRecord.setMember(member);
         borrowRecord.setBook(book);
         borrowRecord.setBorrowDate(LocalDateTime.now());
-        borrowRecord.setDueDate(LocalDateTime.now().plusDays(DEFAULT_BORROW_DAYS));
+        borrowRecord.setDueDate(LocalDateTime.now().plusDays(LibraryConstants.DEFAULT_BORROW_DAYS));
         borrowRecord.setStatus(BorrowStatus.BORROWING);
         borrowRecord.setExtensionCount(0);
 
@@ -149,7 +145,7 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
 
         if (returnDate.isAfter(borrowRecord.getDueDate())) {
             long daysLate = ChronoUnit.DAYS.between(borrowRecord.getDueDate(), returnDate);
-            BigDecimal fine = DAILY_FINE.multiply(BigDecimal.valueOf(daysLate));
+            BigDecimal fine = LibraryConstants.DAILY_FINE.multiply(BigDecimal.valueOf(daysLate));
             borrowRecord.setFine(fine);
             borrowRecord.setStatus(BorrowStatus.OVERDUE);
             borrowRecordRepository.update(borrowRecord);
@@ -180,7 +176,7 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
             return false;
         }
         // check if book has reached maximum extensions
-        if (borrowRecord.getExtensionCount() >= MAX_EXTENSIONS) {
+        if (borrowRecord.getExtensionCount() >= LibraryConstants.MAX_EXTENSIONS) {
             return false;
         }
         // check if book is overdue
@@ -190,7 +186,7 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
 
         // extend borrow period
         // increase due date by DEFAULT_BORROW_DAYS
-        borrowRecord.setDueDate(borrowRecord.getDueDate().plusDays(DEFAULT_BORROW_DAYS));
+        borrowRecord.setDueDate(borrowRecord.getDueDate().plusDays(LibraryConstants.DEFAULT_BORROW_DAYS));
         // increase extension count
         borrowRecord.setExtensionCount(borrowRecord.getExtensionCount() + 1);
 
@@ -218,7 +214,7 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
         // set borrow record fine to LOST_BOOK_FINE
         borrowRecord.setStatus(BorrowStatus.LOST);
         borrowRecord.setReturnDate(LocalDateTime.now());
-        borrowRecord.setFine(LOST_BOOK_FINE);
+        borrowRecord.setFine(LibraryConstants.LOST_BOOK_FINE);
         borrowRecord.setActualReturnCondition("Book reported lost");
 
         // update book quantity
@@ -283,5 +279,10 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
             Hibernate.initialize(borrow.getBook());
         });
         return borrows;
+    }
+
+    @Override
+    public long countActiveBooksByMember(Long memberId) {
+        return borrowRecordRepository.countActiveBooksByMember(memberId);
     }
 }
