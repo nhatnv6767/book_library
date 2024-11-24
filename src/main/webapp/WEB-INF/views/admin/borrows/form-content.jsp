@@ -20,7 +20,6 @@
                             </span>
                         </label>
                         <select id="member-select" name="memberId" required>
-                            <option value="">Search for member...</option>
                             <c:forEach items="${members}" var="member">
                                 <option value="${member.memberId}"
                                         data-code="${member.memberCode}"
@@ -39,7 +38,6 @@
                             </span>
                         </label>
                         <select id="book-select" name="bookId" required>
-                            <option value="">Search for book...</option>
                             <c:forEach items="${books}" var="book">
                                 <option value="${book.bookId}"
                                         data-quantity="${book.quantity}"
@@ -97,17 +95,26 @@
                 field: "text",
                 direction: "asc"
             },
+            placeholder: "Search for member...",
             render: {
                 option: function (item, escape) {
-                    var status = item.dataset.status === 'ACTIVE' ? 
+                    var status = item.dataset.status === 'ACTIVE' ?
                         '<span class="badge badge-success badge-sm ml-2">Active</span>' : '';
                     return '<div class="d-flex align-items-center">' +
-                           '<span>' + escape(item.text) + '</span>' + 
-                           status +
-                           '</div>';
+                        '<span>' + escape(item.text) + '</span>' +
+                        status +
+                        '</div>';
                 }
             },
-            searchField: ['text']
+            searchField: ['text', 'value'], // Add 'value' into searchField
+            valueField: 'value', // add valueField
+            labelField: 'text',  // add labelField
+            options: Array.from(document.querySelectorAll('#member-select option')).map(opt => ({
+                value: opt.value,
+                text: opt.textContent.trim(),
+                dataset: opt.dataset
+            })),
+            openOnFocus: true
         });
 
         new TomSelect('#book-select', {
@@ -116,17 +123,26 @@
                 field: "text",
                 direction: "asc"
             },
+            placeholder: "Search for book...",
             render: {
                 option: function (item, escape) {
                     return '<div class="d-flex align-items-center">' +
-                           '<span>' + escape(item.text) + '</span>' +
-                           '<span class="badge badge-info badge-sm ml-2">' +
-                           'Available: ' + item.dataset.quantity +
-                           '</span>' +
-                           '</div>';
+                        '<span>' + escape(item.text) + '</span>' +
+                        '<span class="badge badge-info badge-sm ml-2">' +
+                        'Available: ' + item.dataset.quantity +
+                        '</span>' +
+                        '</div>';
                 }
             },
-            searchField: ['text']
+            searchField: ['text', 'value'], // add 'value' into searchField
+            valueField: 'value', // add valueField
+            labelField: 'text',  // add labelField
+            options: Array.from(document.querySelectorAll('#book-select option')).map(opt => ({
+                value: opt.value,
+                text: opt.textContent.trim(),
+                dataset: opt.dataset
+            })),
+            openOnFocus: true
         });
     });
 </script>
