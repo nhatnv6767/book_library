@@ -1,4 +1,4 @@
-package ra.librarymanagement.repository;
+package ra.librarymanagement.service;
 
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface IBorrowRecordRepository {
+public interface IBorrowRecordService {
     List<BorrowRecord> findAll();
 
     Optional<BorrowRecord> findById(Long id);
@@ -23,15 +23,19 @@ public interface IBorrowRecordRepository {
 
     List<BorrowRecord> findOverdueRecords();
 
-    void save(BorrowRecord borrowRecord);
+    BorrowRecord borrowBook(Long memberId, Long bookId);
 
-    void update(BorrowRecord borrowRecord);
+    BorrowRecord returnBook(Long borrowId);
 
-    void delete(Long id);
+    void calculateFine(Long borrowId);
 
-    List<BorrowRecord> findByBorrowDateBetween(LocalDateTime start, LocalDateTime end);
+    List<BorrowRecord> findByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 
-    long countActiveBooksByMember(Long memberId);
+    List<BorrowRecord> findActiveBorrowsByMember(Long memberId);
+
+    boolean extendBorrowPeriod(Long borrowId);
+
+    void reportLostBook(Long borrowId);
 
     int countCurrentBorrows();
 

@@ -2,6 +2,7 @@ package ra.librarymanagement.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -10,23 +11,35 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
+import ra.librarymanagement.util.FileUploadUtil;
+
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import java.io.File;
 import java.util.Properties;
 
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
-public class AppConfig {
+@ComponentScan(basePackages = {
+        "ra.librarymanagement.controller",
+        "ra.librarymanagement.repository.imp",
+        "ra.librarymanagement.service.imp"
+})
+public class AppConfig implements WebMvcConfigurer {
     // 1. viewResolver
     @Bean
     public ViewResolver viewResolver() {
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
-        viewResolver.setPrefix("/views");
+        viewResolver.setPrefix("/WEB-INF/views/");
         viewResolver.setSuffix(".jsp");
         return viewResolver;
     }
@@ -78,4 +91,50 @@ public class AppConfig {
         transactionManager.setEntityManagerFactory(entityManagerFactory);
         return transactionManager;
     }
+
+    @Bean(name = "multipartResolver")
+    public CommonsMultipartResolver multipartResolver() {
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        multipartResolver.setMaxUploadSize(10 * 1024 * 1024); // 10MB
+        multipartResolver.setMaxUploadSizePerFile(10 * 1024 * 1024); // 10MB
+        multipartResolver.setDefaultEncoding("UTF-8");
+
+        return multipartResolver;
+    }
+
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/uploads/**")
+//                .addResourceLocations("file:src/main/resources/static/uploads/");
+//
+//        registry.addResourceHandler("/resources/**")
+//                .addResourceLocations("/resources/");
+//    }
+
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+        String uploadPath = new File("src/main/resources/static/uploads").getAbsolutePath();
+
+        // Xử lý uploads
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + uploadPath + "/");
+        // .addResourceLocations("file:src/main/resources/static/uploads/");   // simple way to handle uploads
+
+        // handle static resources (css, js, images)
+        registry.addResourceHandler("/static/**")
+                .addResourceLocations("/resources/static/");
+
+        // handle resources
+        registry.addResourceHandler("/resources/**")
+                .addResourceLocations("/resources/");
+    }
+
+    @PostConstruct
+    public void init() {
+        // Create upload directory if it doesn't exist
+        FileUploadUtil.createUploadDirectoryIfNeeded();
+    }
+
 }

@@ -1,4 +1,4 @@
-package ra.librarymanagement.repository;
+package ra.librarymanagement.service;
 
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
@@ -7,7 +7,7 @@ import ra.librarymanagement.model.member.MemberType;
 import java.util.List;
 import java.util.Optional;
 
-public interface IMemberRepository {
+public interface IMemberService {
     List<Member> findAll();
 
     Optional<Member> findById(Long id);
@@ -22,25 +22,22 @@ public interface IMemberRepository {
 
     List<Member> findByMemberType(MemberType memberType);
 
-    List<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status);
+    Member save(Member member);
 
-    void save(Member member);
+    Member update(Member member);
 
-    void update(Member member);
+    boolean delete(Long id);
 
-    void delete(Long id);
+    boolean canBorrowBooks(Long memberId);
 
-    boolean existsByMemberCode(String memberCode);
+    long getActiveBorrowCount(Long memberId);
 
-    boolean existsByEmail(String email);
-
-    List<Member> findActiveMembers();
-
-    long countActiveBooksByMember(Long memberId);
+    void updateMemberStatus(Long memberId, MemberStatus status);
 
     int countActiveMembers();
 
     int countNewMembersThisMonth();
 
-    Optional<Member> findByIdWithBorrowRecords(Long id);
+    List<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status);
+
 }

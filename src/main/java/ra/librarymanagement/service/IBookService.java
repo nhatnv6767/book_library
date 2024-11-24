@@ -1,4 +1,4 @@
-package ra.librarymanagement.repository;
+package ra.librarymanagement.service;
 
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.book.BookStatus;
@@ -6,7 +6,7 @@ import ra.librarymanagement.model.book.BookStatus;
 import java.util.List;
 import java.util.Optional;
 
-public interface IBookRepository {
+public interface IBookService {
     List<Book> findAll();
 
     Optional<Book> findById(Long id);
@@ -21,20 +21,23 @@ public interface IBookRepository {
 
     List<Book> findByCategory(String category);
 
-    void save(Book book);
+    Book save(Book book);
 
-    void update(Book book);
+    Book update(Book book);
 
-    void delete(Long id);
+    boolean delete(Long id);
 
-    boolean existsByIsbn(String isbn);
-
-    List<Book> findAvailableBooks();
+    boolean isAvailableForBorrow(Long bookId);
 
     void updateQuantity(Long bookId, Integer quantity);
+
+    long getAvailableCopies(Long bookId);
+
+    List<Book> findAvailableBooks();
 
     Long countTotalBooks();
 
     Long countAvailableBooks();
+
 
 }

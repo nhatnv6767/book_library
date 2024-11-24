@@ -3,6 +3,8 @@ package ra.librarymanagement.model.book;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
@@ -17,6 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@ToString(exclude = "borrowRecords")
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
