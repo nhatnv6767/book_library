@@ -1,5 +1,6 @@
 package ra.librarymanagement.controller;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -110,6 +111,9 @@ public class BorrowRecordController {
                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
                          Model model) {
         List<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(memberSearch, status, startDate, endDate);
+        borrows.forEach(borrow -> {
+            Hibernate.initialize(borrow.getMember());
+        });
 
         model.addAttribute("borrows", borrows);
         model.addAttribute("statuses", BorrowStatus.values());
