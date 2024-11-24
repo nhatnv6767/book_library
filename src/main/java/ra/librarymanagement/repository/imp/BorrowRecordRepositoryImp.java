@@ -480,7 +480,9 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
                         result.cb.like(result.cb.lower(memberJoin.get("email")), keyword),
                         result.cb.like(result.cb.lower(memberJoin.get("memberCode")), keyword),
                         result.cb.like(result.cb.lower(memberJoin.get("identityCard")), keyword),
-                        result.cb.like(result.cb.lower(bookJoin.get("title")), keyword)
+                        result.cb.like(result.cb.lower(bookJoin.get("title")), keyword),
+                        result.cb.like(result.cb.lower(bookJoin.get("isbn")), keyword),
+                        result.cb.like(result.cb.lower(bookJoin.get("author")), keyword)
                 ));
             }
 
