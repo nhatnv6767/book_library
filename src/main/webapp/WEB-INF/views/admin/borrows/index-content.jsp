@@ -13,6 +13,20 @@
 <div class="bg-base-100 p-4 rounded-lg shadow mb-6">
     <form action="/admin/borrows/search" method="GET" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+
+            <!-- Search Member -->
+            <div class="form-control">
+                <div class="input-group">
+                    <input type="text" name="memberSearch"
+                           placeholder="Search member name/code..."
+                           class="input input-bordered w-full"
+                           value="${param.memberSearch}"/>
+                    <button class="btn btn-square">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
             <!-- Status Filter -->
             <div class="form-control">
                 <select name="status" class="select select-bordered w-full">
@@ -38,13 +52,6 @@
                        class="input input-bordered"
                        value="${endDate}"
                        placeholder="End Date"/>
-            </div>
-
-            <!-- Search Button -->
-            <div class="form-control">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search mr-2"></i> Search
-                </button>
             </div>
 
             <!-- Add New Button -->
@@ -165,7 +172,8 @@
                                         </c:if>
 
                                         <li>
-                                            <a href="#" onclick="showLostModal('${borrow.borrowId}')" class="text-error">
+                                            <a href="#" onclick="showLostModal('${borrow.borrowId}')"
+                                               class="text-error">
                                                 <i class="fas fa-exclamation-triangle"></i> Report Lost
                                             </a>
                                         </li>
@@ -271,7 +279,7 @@
         try {
             if (currentBorrowId) {
                 const condition = document.getElementById('returnCondition').value;
-                window.location.href = "/admin/borrows/return/" + currentBorrowId+ "?condition=" + encodeURIComponent(condition);
+                window.location.href = "/admin/borrows/return/" + currentBorrowId + "?condition=" + encodeURIComponent(condition);
             }
         } catch (e) {
             console.log(e);
@@ -333,7 +341,7 @@
         try {
             if (currentBorrowId) {
                 const notes = document.getElementById('lostNotes').value;
-                window.location.href = "/admin/borrows/lost/" + currentBorrowId+ "?notes=" + encodeURIComponent(notes);
+                window.location.href = "/admin/borrows/lost/" + currentBorrowId + "?notes=" + encodeURIComponent(notes);
             }
         } catch (e) {
             console.log(e);

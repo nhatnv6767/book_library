@@ -104,24 +104,19 @@ public class BorrowRecordController {
     }
 
     @GetMapping("/search")
-    public String search(@RequestParam(required = false) String keyword,
+    public String search(@RequestParam(required = false) String memberSearch,
                          @RequestParam(required = false) BorrowStatus status,
                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
                          Model model) {
-        List<BorrowRecord> borrows;
-        if (startDate != null && endDate != null) {
-            borrows = borrowRecordService.findByDateRange(startDate, endDate);
-        } else if (status != null) {
-            borrows = borrowRecordService.findByStatus(status);
-        } else {
-            borrows = borrowRecordService.findAll();
-        }
+        List<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(memberSearch, status, startDate, endDate);
+
         model.addAttribute("borrows", borrows);
         model.addAttribute("statuses", BorrowStatus.values());
         model.addAttribute("selectedStatus", status);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
+        model.addAttribute("memberSearch", memberSearch);
         return "admin/borrows/index";
     }
 }

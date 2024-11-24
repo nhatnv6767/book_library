@@ -40,7 +40,7 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
 
     @Override
     public List<BorrowRecord> findAll() {
-        try{
+        try {
             CriteriaUtil.Result<BorrowRecord> result = CriteriaUtil.getResult(entityManager, BorrowRecord.class);
 
             result.root.fetch("member", JoinType.LEFT);
@@ -50,7 +50,7 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
             List<BorrowRecord> records = entityManager.createQuery(result.query).getResultList();
 
             records.forEach(record -> {
-                if(record.getFine() == null){
+                if (record.getFine() == null) {
                     record.setFine(BigDecimal.ZERO);
                 }
             });
@@ -453,6 +453,61 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
 
         } catch (Exception e) {
             logger.error("Error getting active alerts: " + e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<BorrowRecord> searchBorrowRecords(String memberKeyword, BorrowStatus status, LocalDateTime startDate, LocalDateTime endDate) {
+        try {
+            CriteriaUtil.Result<BorrowRecord> result = CriteriaUtil.getResult(entityManager, BorrowRecord.class);
+
+            Join<BorrowRecord, Member> memberJoin = result.root.join("member", JoinType.INNER);
+
+            List<Predicate> predicates = new ArrayList<>();
+            // Member search condition
+            if (memberKeyword != null && !memberKeyword.trim().isEmpty()) {
+                String keyword = "%" + memberKeyword.toLowerCase() + "%";
+                predicates.add(result.cb.or(
+                        result.cb.like(result.cb.lower(memberJoin.get("fullName")), keyword),
+                        result.cb.like(result.cb.lower(memberJoin.get("phone")), keyword),
+                        result.cb.like(result.cb.lower(memberJoin.get("email")), keyword),
+                        result.cb.like(result.cb.lower(memberJoin.get("memberCode")), keyword),
+                        result.cb.like(result.cb.lower(memberJoin.get("identity_card")), keyword)
+                ));
+            }
+
+            // Status search condition
+            if (status != null) {
+                predicates.add(result.cb.equal(result.root.get("status"), status));
+            }
+
+            // Date search condition
+            if (startDate != null && endDate != null) {
+                // that means select * from borrow_records where borrow_date between start and end
+                predicates.add(result.cb.between(result.root.get("borrowDate"), startDate, endDate));
+            } else if (startDate != null) {
+                // that means select * from borrow_records where borrow_date >= start
+                predicates.add(result.cb.greaterThanOrEqualTo(result.root.get("borrowDate"), startDate));
+            } else if (endDate != null) {
+                // that means select * from borrow_records where borrow_date <= end
+                predicates.add(result.cb.lessThanOrEqualTo(result.root.get("borrowDate"), endDate));
+            }
+
+            // combine all conditions
+            if (!predicates.isEmpty()) {
+                // that means select * from borrow_records where member like memberKeyword
+                // and status = status and borrow_date between start and end
+                result.query.where(result.cb.and(predicates.toArray(new Predicate[0])));
+            }
+
+            // Order by borrow date desc
+            // that means select * from borrow_records where member like memberKeyword
+            // and status = status and borrow_date between start and end order by borrow_date desc
+            result.query.orderBy(result.cb.desc(result.root.get("borrowDate")));
+            return entityManager.createQuery(result.query).getResultList();
+        } catch (Exception e) {
+            logger.error("Error searching borrow records: " + e.getMessage(), e);
             return Collections.emptyList();
         }
     }

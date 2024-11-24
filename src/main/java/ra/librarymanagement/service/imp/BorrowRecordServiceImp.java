@@ -272,4 +272,9 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
     public List<Alert> getActiveAlerts() {
         return borrowRecordRepository.getActiveAlerts();
     }
+
+    @Override
+    public List<BorrowRecord> searchBorrowRecords(String memberKeyword, BorrowStatus status, LocalDateTime startDate, LocalDateTime endDate) {
+        return borrowRecordRepository.searchBorrowRecords(memberKeyword, status, startDate, endDate);
+    }
 }
