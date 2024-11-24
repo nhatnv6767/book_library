@@ -280,6 +280,7 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
         List<BorrowRecord> borrows = borrowRecordRepository.searchBorrowRecords(memberKeyword, status, startDate, endDate);
         borrows.forEach(borrow -> {
             Hibernate.initialize(borrow.getMember());
+            Hibernate.initialize(borrow.getBook());
         });
         return borrows;
     }
