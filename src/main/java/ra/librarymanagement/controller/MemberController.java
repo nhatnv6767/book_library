@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
+import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
 import ra.librarymanagement.model.member.MemberType;
@@ -156,10 +157,10 @@ public class MemberController {
             // Tạo statistics cho member này
             long totalBorrows = member.getBorrowRecord().size();
             long currentBorrows = member.getBorrowRecord().stream()
-                    .filter(record -> record.getStatus().equals("BORROWING"))
+                    .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
                     .count();
             long overdueBorrows = member.getBorrowRecord().stream()
-                    .filter(record -> record.getStatus().equals("OVERDUE"))
+                    .filter(record -> record.getStatus() == BorrowStatus.OVERDUE)
                     .count();
 
             // Add to model
@@ -175,7 +176,7 @@ public class MemberController {
 
             // Add active borrows at the top for quick reference
             List<BorrowRecord> activeBorrows = member.getBorrowRecord().stream()
-                    .filter(record -> record.getStatus().equals("BORROWING"))
+                    .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
                     .collect(Collectors.toList());
             model.addAttribute("activeBorrows", activeBorrows);
 
@@ -203,7 +204,7 @@ public class MemberController {
 
             // Check nếu member đang mượn sách
             long activeBorrows = member.getBorrowRecord().stream()
-                    .filter(record -> record.getStatus().equals("BORROWING"))
+                    .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
                     .count();
             if (activeBorrows > 0) {
                 redirectAttributes.addFlashAttribute("errorMessage",
@@ -272,7 +273,7 @@ public class MemberController {
 
             // Check nếu member đang mượn sách
             long activeBorrows = member.getBorrowRecord().stream()
-                    .filter(record -> record.getStatus().equals("BORROWING"))
+                    .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
                     .count();
             if (activeBorrows > 0) {
                 redirectAttributes.addFlashAttribute("errorMessage",
