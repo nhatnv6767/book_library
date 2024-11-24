@@ -313,16 +313,16 @@
     }
 
     function updateBookPreview(bookOption) {
-
         const preview = document.getElementById('book-preview');
         const quantity = parseInt(bookOption.dataset.quantity) || 0;
-        // console.log('Book data:', {
-        //     isbn: bookOption.dataset.isbn,
-        //     author: bookOption.dataset.author,
-        //     category: bookOption.dataset.category,
-        //     publisher: bookOption.dataset.publisher,
-        //     quantity: bookOption.dataset.quantity
-        // });
+
+        console.log('Book data:', {
+            isbn: bookOption.dataset.isbn,
+            author: bookOption.dataset.author,
+            category: bookOption.dataset.category,
+            publisher: bookOption.dataset.publisher,
+            quantity: bookOption.dataset.quantity
+        });
 
         document.getElementById('book-isbn').textContent = bookOption.dataset.isbn || 'N/A';
         document.getElementById('book-author').textContent = bookOption.dataset.author || 'N/A';
@@ -346,7 +346,6 @@
         `;
         }
 
-        // warning to show when quantity is 0
         const warningElement = document.getElementById('quantity-warning');
         if (warningElement) {
             warningElement.classList.toggle('hidden', quantity > 0);
