@@ -330,6 +330,7 @@
         document.getElementById('book-publisher').textContent = bookOption.dataset.publisher || 'N/A';
 
         const quantityElement = document.getElementById('book-quantity');
+        quantityElement.textContent = bookOption.dataset.quantity || '0';
         if (quantity > 0) {
             quantityElement.innerHTML = `
             <span class="badge badge-success">
