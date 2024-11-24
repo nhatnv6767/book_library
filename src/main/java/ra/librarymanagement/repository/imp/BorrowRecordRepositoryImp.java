@@ -40,9 +40,27 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
 
     @Override
     public List<BorrowRecord> findAll() {
-        CriteriaUtil.Result<BorrowRecord> result = CriteriaUtil.getResult(entityManager, BorrowRecord.class);
-        result.query.select(result.root);
-        return entityManager.createQuery(result.query).getResultList();
+        try{
+            CriteriaUtil.Result<BorrowRecord> result = CriteriaUtil.getResult(entityManager, BorrowRecord.class);
+
+            result.root.fetch("member", JoinType.LEFT);
+            result.root.fetch("book", JoinType.LEFT);
+
+            result.query.orderBy(result.cb.desc(result.root.get("borrowDate")));
+            List<BorrowRecord> records = entityManager.createQuery(result.query).getResultList();
+
+            records.forEach(record -> {
+                if(record.getFine() == null){
+                    record.setFine(BigDecimal.ZERO);
+                }
+            });
+
+
+            return records;
+        } catch (Exception e) {
+            logger.error("Error finding all borrow records: " + e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
     @Override

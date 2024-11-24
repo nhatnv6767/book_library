@@ -77,7 +77,9 @@
                     <div class="flex items-center space-x-3">
                         <div class="avatar">
                             <div class="mask mask-squircle w-12 h-12">
-                                <img src="${borrow.member.avatar != null ? borrow.member.avatar : '/static/images/default-avatar.png'}"
+                                <!-- <img src="${borrow.member.avatar != null ? borrow.member.avatar : '/static/images/default-avatar.png'}"
+                                     alt="${borrow.member.fullName}"/> -->
+                                <img src="${empty borrow.member.avatar ? '/static/images/default-avatar.png' : borrow.member.avatar}"
                                      alt="${borrow.member.fullName}"/>
                             </div>
                         </div>
@@ -126,7 +128,7 @@
                     </c:if>
                 </td>
                 <td>
-                    <c:if test="${borrow.fine.compareTo(BigDecimal.ZERO) > 0}">
+                    <c:if test="${borrow.fine != null && borrow.fine.compareTo(BigDecimal.ZERO) > 0}">
                         <div class="text-error font-semibold">
                                 ${borrow.fine} đ
                         </div>
