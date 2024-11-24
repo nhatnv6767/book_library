@@ -13,6 +13,7 @@ import ra.librarymanagement.util.CriteriaUtil;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 
 import java.math.BigDecimal;
@@ -462,7 +463,12 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
         try {
             CriteriaUtil.Result<BorrowRecord> result = CriteriaUtil.getResult(entityManager, BorrowRecord.class);
 
-            Join<BorrowRecord, Member> memberJoin = result.root.join("member", JoinType.INNER);
+            // Fetch joins để load eager
+            result.root.fetch("member", JoinType.LEFT);
+            result.root.fetch("book", JoinType.LEFT);
+
+            Join<BorrowRecord, Member> memberJoin = result.root.join("member", JoinType.LEFT);
+            Join<BorrowRecord, Book> bookJoin = result.root.join("book", JoinType.LEFT);
 
             List<Predicate> predicates = new ArrayList<>();
             // Member search condition
@@ -473,7 +479,8 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
                         result.cb.like(result.cb.lower(memberJoin.get("phone")), keyword),
                         result.cb.like(result.cb.lower(memberJoin.get("email")), keyword),
                         result.cb.like(result.cb.lower(memberJoin.get("memberCode")), keyword),
-                        result.cb.like(result.cb.lower(memberJoin.get("identity_card")), keyword)
+                        result.cb.like(result.cb.lower(memberJoin.get("identityCard")), keyword),
+                        result.cb.like(result.cb.lower(bookJoin.get("title")), keyword)
                 ));
             }
 
@@ -505,9 +512,20 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
             // that means select * from borrow_records where member like memberKeyword
             // and status = status and borrow_date between start and end order by borrow_date desc
             result.query.orderBy(result.cb.desc(result.root.get("borrowDate")));
-            return entityManager.createQuery(result.query).getResultList();
+            result.query.distinct(true);
+
+            TypedQuery<BorrowRecord> query = entityManager.createQuery(result.query);
+            List<BorrowRecord> borrows = query.getResultList();
+
+//            logger.info("Search params: keyword={}, status={}, startDate={}, endDate={}",
+//                    memberKeyword, status, startDate, endDate);
+//            logger.info("Generated SQL: {}", query.unwrap(org.hibernate.query.Query.class).getQueryString());
+//            logger.info("Found {} results", borrows.size());
+
+            return borrows;
         } catch (Exception e) {
             logger.error("Error searching borrow records: " + e.getMessage(), e);
+            e.printStackTrace();
             return Collections.emptyList();
         }
     }
