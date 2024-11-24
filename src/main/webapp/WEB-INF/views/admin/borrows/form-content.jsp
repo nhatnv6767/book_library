@@ -315,24 +315,22 @@
     function updateBookPreview(bookOption) {
 
         const preview = document.getElementById('book-preview');
-        console.log('Book data:', {
-            isbn: bookOption.dataset.isbn,
-            author: bookOption.dataset.author,
-            category: bookOption.dataset.category,
-            publisher: bookOption.dataset.publisher,
-            quantity: bookOption.dataset.quantity
-        });
+        const quantity = parseInt(bookOption.dataset.quantity) || 0;
+        // console.log('Book data:', {
+        //     isbn: bookOption.dataset.isbn,
+        //     author: bookOption.dataset.author,
+        //     category: bookOption.dataset.category,
+        //     publisher: bookOption.dataset.publisher,
+        //     quantity: bookOption.dataset.quantity
+        // });
 
         document.getElementById('book-isbn').textContent = bookOption.dataset.isbn || 'N/A';
         document.getElementById('book-author').textContent = bookOption.dataset.author || 'N/A';
         document.getElementById('book-category').textContent = bookOption.dataset.category || 'N/A';
         document.getElementById('book-publisher').textContent = bookOption.dataset.publisher || 'N/A';
 
-
-        const quantity = parseInt(bookOption.dataset.quantity);
         const quantityElement = document.getElementById('book-quantity');
         if (quantity > 0) {
-            console.log("Quantity", quantity)
             quantityElement.innerHTML = `
             <span class="badge badge-success">
                 <i class="fas fa-check-circle mr-1"></i>
@@ -348,7 +346,11 @@
         `;
         }
 
-        document.getElementById('quantity-warning').classList.toggle('hidden', quantity > 0);
+        // warning to show when quantity is 0
+        const warningElement = document.getElementById('quantity-warning');
+        if (warningElement) {
+            warningElement.classList.toggle('hidden', quantity > 0);
+        }
 
         preview.classList.remove('hidden');
         preview.classList.add('animate__animated', 'animate__fadeIn');
