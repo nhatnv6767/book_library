@@ -99,7 +99,7 @@ public class MemberServiceImp implements IMemberService {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        memberRepository.save(member);
+        memberRepository.update(member);
 
         return member;
     }

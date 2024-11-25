@@ -260,7 +260,7 @@ public class MemberController {
             Member member = memberService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
 
-            // Tạo statistics cho member này
+            // Create statistics for this member
             long totalBorrows = member.getBorrowRecord().size();
             long currentBorrows = member.getBorrowRecord().stream()
                     .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
@@ -292,7 +292,7 @@ public class MemberController {
         }
     }
 
-    // Thêm phương thức suspend
+    // Add suspend method
     @PostMapping("/suspend/{id}")
     public String suspendMember(@PathVariable Long id,
                                 @RequestParam("suspensionReason") String reason,
@@ -301,14 +301,14 @@ public class MemberController {
             Member member = memberService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
 
-            // Không thể suspend member đã bị suspend hoặc expired
+            // Cannot suspend member who is already suspended or expired
             if (!member.getStatus().equals(MemberStatus.ACTIVE)) {
                 redirectAttributes.addFlashAttribute("errorMessage",
                         "Cannot suspend member. Member is not active.");
                 return "redirect:/admin/members/view/" + id;
             }
 
-            // Check nếu member đang mượn sách
+            // Check if member has active borrows
             long activeBorrows = member.getBorrowRecord().stream()
                     .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
                     .count();
@@ -318,7 +318,7 @@ public class MemberController {
                 return "redirect:/admin/members/view/" + id;
             }
 
-            // Cập nhật status và note
+            // Update status and note
             member.setStatus(MemberStatus.SUSPENDED);
             member.setNote(member.getNote() != null ?
                     member.getNote() + "\n[Suspended] " + reason :
@@ -337,7 +337,7 @@ public class MemberController {
         }
     }
 
-    // Thêm phương thức activate (để reactivate suspended member)
+    // Add activate method (to reactivate suspended member)
     @GetMapping("/activate/{id}")
     public String activateMember(@PathVariable Long id,
                                  RedirectAttributes redirectAttributes) {
@@ -345,7 +345,7 @@ public class MemberController {
             Member member = memberService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
 
-            // Chỉ có thể activate member bị suspended
+            // Can only activate suspended member
             if (!member.getStatus().equals(MemberStatus.SUSPENDED)) {
                 redirectAttributes.addFlashAttribute("errorMessage",
                         "Cannot activate member. Member is not suspended.");
@@ -368,7 +368,7 @@ public class MemberController {
         }
     }
 
-    // Thêm phương thức delete
+    // Add delete method
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id,
                          @RequestParam(required = false) String reason,
@@ -377,7 +377,7 @@ public class MemberController {
             Member member = memberService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
 
-            // Check nếu member đang mượn sách
+            // Check if member has active borrows
             long activeBorrows = member.getBorrowRecord().stream()
                     .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
                     .count();
@@ -387,7 +387,7 @@ public class MemberController {
                 return "redirect:/admin/members";
             }
 
-            // Delete avatar file nếu có
+            // Delete avatar file if exists
             if (member.getAvatar() != null) {
                 FileUploadUtil.deleteFile(member.getAvatar());
             }
