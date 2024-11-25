@@ -24,16 +24,16 @@
                 <!-- Basic Information Section -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Member Code -->
-                    <div class="form-control">
+                    <!-- <div class="form-control">
                         <label class="label">
                             <span class="label-text">Member Code*</span>
                         </label>
-                        <input type="text" name="memberCode" value="${member.memberCode}"
+                        <input type="hidden" name="memberCode" value="${member.memberCode}"
                                class="input input-bordered" required
                         ${member.memberId != null ? 'readonly' : ''}
                                pattern="^[A-Za-z0-9]{5,10}$"
                                title="5-10 characters, alphanumeric only"/>
-                    </div>
+                    </div> -->
 
                     <!-- Full Name -->
                     <div class="form-control">

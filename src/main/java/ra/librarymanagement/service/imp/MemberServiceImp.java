@@ -66,9 +66,10 @@ public class MemberServiceImp implements IMemberService {
     @Transactional
     public Member save(Member member) {
         // Check if member code already exists
-        if (memberRepository.existsByMemberCode(member.getMemberCode())) {
-            throw new IllegalArgumentException("Member code already exists");
-        }
+        // if (memberRepository.existsByMemberCode(member.getMemberCode())) {
+        //     throw new IllegalArgumentException("Member code already exists");
+        // }
+        member.setMemberCode(generateNewMemberCode());
         if (memberRepository.existsByEmail(member.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -186,29 +187,15 @@ public class MemberServiceImp implements IMemberService {
     private String generateNewMemberCode(){
         String lastCode = memberRepository.getLastMemberCode();
         if(lastCode == null){
-            return LibraryConstants.MEMBER_CODE_PREFIX + "001";
+            return LibraryConstants.MEMBER_CODE_PREFIX + "0000001";
         }
 
-        if(lastCode.matches("MEM\\d{3}")){
-            int lastNumber = Integer.parseInt(lastCode.substring(3));
-            if(lastNumber < LibraryConstants.MAX_NUMERIC_CODE){
-                return String.format("MEM%03d", lastNumber + 1);
-            }else{
-                return "MEMA01";
-            }
-        } else{
-            char letter = lastCode.charAt(3);
-            int number = Integer.parseInt(lastCode.substring(4));
-            if(number < LibraryConstants.MAX_ALPHA_CODE){
-                return String.format("MEM%c%02d", letter, number + 1);
-            } else{
-                if(letter < 'Z'){
-                    return String.format("MEM%c01", (char)(letter + 1));
-                } else{
-                    throw new RuntimeException("Member code limit exceeded");
-                }
-            }
+        int lastNumber = Integer.parseInt(lastCode.substring(3));
+        if(lastNumber >= LibraryConstants.MAX_SEQUENCE_NUMBER){
+            throw new RuntimeException("Member code limit exceeded");
         }
+
+        return String.format("%s%07d", LibraryConstants.MEMBER_CODE_PREFIX, lastNumber + 1);
     }
 
 

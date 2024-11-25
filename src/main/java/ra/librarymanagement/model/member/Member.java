@@ -31,6 +31,7 @@ public class Member {
     private Long memberId;
 
     @Column(name = "member_code", nullable = false, unique = true, length = 10)
+    @Pattern(regexp = "^MEM\\d{7}$", message = "Invalid member code format")
     private String memberCode;
 
     @Column(name = "full_name", nullable = false, length = 100)
