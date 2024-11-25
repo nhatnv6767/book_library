@@ -43,4 +43,6 @@ public interface IMemberRepository {
     int countNewMembersThisMonth();
 
     Optional<Member> findByIdWithBorrowRecords(Long id);
+
+    String getLastMemberCode();
 }

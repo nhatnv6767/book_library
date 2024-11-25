@@ -157,7 +157,6 @@
                                 </a>
                             </li> -->
                             <li>
-                                <!-- Sửa từ dòng này -->
                                 <a href="/admin/members/view/${member.memberId}" class="text-info">
                                     <i class="fas fa-eye"></i> View Details
                                 </a>
@@ -176,7 +175,7 @@
                             </c:if>
                             <c:if test="${member.status == 'ACTIVE'}">
                                 <li>
-                                    <a href="/admin/members/suspend/${member.memberId}" class="text-warning">
+                                    <a href="#" onclick="showSuspendModal(${member.memberId})" class="text-warning">
                                         <i class="fas fa-pause-circle"></i> Suspend
                                     </a>
                                 </li>
@@ -206,6 +205,25 @@
         </div>
     </form>
 </dialog>
+<!-- Add modal and script at the end of file -->
+<dialog id="suspend-modal" class="modal">
+    <form method="POST" action="" id="suspend-form" class="modal-box">
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+        <h3 class="font-bold text-lg">Suspend Member</h3>
+        <p class="py-4">Are you sure you want to suspend this member? This will prevent them from borrowing books.</p>
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Reason for Suspension</span>
+            </label>
+            <textarea name="suspensionReason" class="textarea textarea-bordered"
+                      placeholder="Enter reason for suspension" required></textarea>
+        </div>
+        <div class="modal-action">
+            <button type="button" class="btn" onclick="closeSuspendModal()">Cancel</button>
+            <button type="submit" class="btn btn-error">Suspend Member</button>
+        </div>
+    </form>
+</dialog>
 
 <!-- JavaScript -->
 <script>
@@ -229,5 +247,17 @@
                 console.log(e);
             }
         }
+    }
+
+    function showSuspendModal(memberId) {
+        // console.log("showSuspendModal", memberId);
+        const modal = document.getElementById('suspend-modal');
+        const form = document.getElementById('suspend-form');
+        form.action = "/admin/members/suspend/" + memberId;
+        modal.showModal();
+    }
+
+    function closeSuspendModal() {
+        document.getElementById('suspend-modal').close();
     }
 </script>

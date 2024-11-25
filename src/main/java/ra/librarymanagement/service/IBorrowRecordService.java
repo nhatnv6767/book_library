@@ -61,4 +61,5 @@ public interface IBorrowRecordService {
     void update(BorrowRecord borrowRecord);
 
     Optional<BorrowRecord> findByIdWithMember(Long id);
+
 }

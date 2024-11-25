@@ -312,4 +312,23 @@ public class MemberRepositoryImp implements IMemberRepository {
             return Optional.empty();
         }
     }
+
+    @Override
+    public String getLastMemberCode() {
+        // TODO Auto-generated method stub
+        try{
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<String> query = cb.createQuery(String.class);
+            Root<Member> root = query.from(Member.class);
+
+            query.select(root.get("memberCode")).where(
+                cb.like(root.get("memberCode"), "MEM%")
+            ).orderBy(cb.desc(root.get("memberCode")));
+
+            return entityManager.createQuery(query).setMaxResults(1).getSingleResult();
+
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
 }

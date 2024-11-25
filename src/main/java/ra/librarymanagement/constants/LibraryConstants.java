@@ -12,4 +12,9 @@ public class LibraryConstants {
     public static final int REGULAR_MEMBER_MAX_BOOKS = 3;
     public static final int VIP_MEMBER_MAX_BOOKS = 5;
     public static final int STUDENT_MEMBER_MAX_BOOKS = 2;
+
+    // Member code constants
+    public static final String MEMBER_CODE_PREFIX = "MEM";
+    public static final int MEMBER_CODE_LENGTH = 10;
+    public static final int MAX_SEQUENCE_NUMBER = 9999999;
 }

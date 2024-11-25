@@ -3,6 +3,8 @@ package ra.librarymanagement.service.imp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
 import ra.librarymanagement.model.member.MemberType;
@@ -173,6 +175,40 @@ public class MemberServiceImp implements IMemberService {
                 memberType,
                 status
         );
+    }
+
+    @Override
+    public String getLastMemberCode() {
+        return memberRepository.getLastMemberCode();
+    }
+
+
+    private String generateNewMemberCode(){
+        String lastCode = memberRepository.getLastMemberCode();
+        if(lastCode == null){
+            return LibraryConstants.MEMBER_CODE_PREFIX + "001";
+        }
+
+        if(lastCode.matches("MEM\\d{3}")){
+            int lastNumber = Integer.parseInt(lastCode.substring(3));
+            if(lastNumber < LibraryConstants.MAX_NUMERIC_CODE){
+                return String.format("MEM%03d", lastNumber + 1);
+            }else{
+                return "MEMA01";
+            }
+        } else{
+            char letter = lastCode.charAt(3);
+            int number = Integer.parseInt(lastCode.substring(4));
+            if(number < LibraryConstants.MAX_ALPHA_CODE){
+                return String.format("MEM%c%02d", letter, number + 1);
+            } else{
+                if(letter < 'Z'){
+                    return String.format("MEM%c01", (char)(letter + 1));
+                } else{
+                    throw new RuntimeException("Member code limit exceeded");
+                }
+            }
+        }
     }
 
 
