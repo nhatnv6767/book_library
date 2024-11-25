@@ -14,7 +14,6 @@
             <h2 class="card-title">
                 ${member.memberId == null ? 'Add New Member' : 'Edit Member'}
             </h2>
-
             <form action="${member.memberId == null ? '/admin/members/add' : '/admin/members/edit/'.concat(member.memberId)}"
                   method="POST"
                   enctype="multipart/form-data"
@@ -41,11 +40,15 @@
                         <label class="label">
                             <span class="label-text">Full Name</span>
                         </label>
-                        <input type="text" name="fullName" value="${member.fullName}"
-                               class="input input-bordered ${bindingResult.hasFieldErrors('fullName') ? 'input-error' : ''}" />
+                        <input type="text"
+                               name="fullName"
+                               value="${member.fullName}"
+                               class="input input-bordered ${not empty fullNameError ? 'input-error' : ''}"/>
                         <c:if test="${bindingResult.hasFieldErrors('fullName')}">
                             <label class="label">
-                                <span class="label-text-alt text-error">${bindingResult.getFieldError('fullName').defaultMessage}</span>
+                                <span class="label-text-alt text-error">
+                                        ${bindingResult.getFieldError('fullName').defaultMessage}
+                                </span>
                             </label>
                         </c:if>
                     </div>
@@ -55,8 +58,17 @@
                         <label class="label">
                             <span class="label-text">Email*</span>
                         </label>
-                        <input type="email" name="email" value="${member.email}"
-                               class="input input-bordered" required/>
+                        <input type="email"
+                               name="email"
+                               value="${member.email}"
+                               class="input input-bordered ${not empty emailError ? 'input-error' : ''}"/>
+                        <c:if test="${bindingResult.hasFieldErrors('email')}">
+                            <label class="label">
+                                <span class="label-text-alt text-error">
+                                        ${bindingResult.getFieldError('email').defaultMessage}
+                                </span>
+                            </label>
+                        </c:if>
                     </div>
 
                     <!-- Phone -->
@@ -116,12 +128,17 @@
                         <label class="label">
                             <span class="label-text">Date of Birth</span>
                         </label>
-                        <!-- <input type="datetime-local" name="dateOfBirth"
-                               value="${member.dateOfBirth}"
-                               class="input input-bordered"/> -->
-                               <input type="date" name="dateOfBirth"
-           value="${member.dateOfBirth != null ? member.dateOfBirth.toLocalDate() : ''}"
-           class="input input-bordered"/>
+                        <input type="date"
+                               name="dateOfBirth"
+                               value="${member.dateOfBirth != null ? member.dateOfBirth.toLocalDate() : ''}"
+                               class="input input-bordered ${not empty dateOfBirthError ? 'input-error' : ''}"/>
+                        <c:if test="${bindingResult.hasFieldErrors('dateOfBirth')}">
+                            <label class="label">
+                                <span class="label-text-alt text-error">
+                                        ${bindingResult.getFieldError('dateOfBirth').defaultMessage}
+                                </span>
+                            </label>
+                        </c:if>
                     </div>
                 </div>
 
@@ -165,12 +182,17 @@
                     <label class="label">
                         <span class="label-text">Expiry Date</span>
                     </label>
-                    <!-- <input type="datetime-local" name="expiryDate"
-                           value="${member.expiryDate}"
-                           class="input input-bordered"/> -->
-                           <input type="date" name="expiryDate"
-           value="${member.expiryDate != null ? member.expiryDate.toLocalDate() : ''}"
-           class="input input-bordered"/>
+                    <input type="date"
+                           name="expiryDate"
+                           value="${member.expiryDate != null ? member.expiryDate.toLocalDate() : ''}"
+                           class="input input-bordered ${not empty expiryDateError ? 'input-error' : ''}"/>
+                    <c:if test="${bindingResult.hasFieldErrors('expiryDate')}">
+                        <label class="label">
+                            <span class="label-text-alt text-error">
+                                    ${bindingResult.getFieldError('expiryDate').defaultMessage}
+                            </span>
+                        </label>
+                    </c:if>
                 </div>
 
                 <!-- Form Buttons -->

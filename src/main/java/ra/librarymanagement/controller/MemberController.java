@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -15,14 +16,16 @@ import ra.librarymanagement.model.member.MemberType;
 import ra.librarymanagement.service.IMemberService;
 import ra.librarymanagement.util.FileUploadUtil;
 
+import java.beans.PropertyEditorSupport;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 @Controller
 @RequestMapping("/admin/members")
 public class MemberController {
-
     private final IMemberService memberService;
 
     @Autowired
@@ -53,18 +56,43 @@ public class MemberController {
     }
 
     @PostMapping("/add")
-    public String add(@ModelAttribute Member member,
+    public String add(@ModelAttribute @Valid Member member,
                       BindingResult bindingResult,
                       @RequestParam("avatarFile") MultipartFile file,
-                      RedirectAttributes redirectAttributes, Model model) {
+                      RedirectAttributes redirectAttributes,
+                      Model model) {
         try {
 
-
             if (bindingResult.hasErrors()) {
+                StringBuilder errorMsg = new StringBuilder("Please check the information again:<br>");
+                bindingResult.getFieldErrors().forEach(error -> {
+                    String fieldName;
+                    switch (error.getField()) {
+                        case "fullName":
+                            fieldName = "Full name";
+                            break;
+                        case "email":
+                            fieldName = "Email";
+                            break;
+                        case "dateOfBirth":
+                            fieldName = "Date of birth";
+                            break;
+                        case "expiryDate":
+                            fieldName = "Expiry date";
+                            break;
+                        default:
+                            fieldName = error.getField();
+                            break;
+                    }
+                    errorMsg.append("- ").append(fieldName).append(": ")
+                            .append(error.getDefaultMessage()).append("<br>");
+                });
+
+                // Add attributes for form
                 model.addAttribute("memberTypes", MemberType.values());
                 model.addAttribute("memberStatuses", MemberStatus.values());
-                bindingResult.getFieldErrors().forEach(error -> 
-                model.addAttribute(error.getField() + "Error", "input-error"));
+                model.addAttribute("errorMessage", errorMsg.toString());
+
                 return "admin/members/form";
             }
 
@@ -78,8 +106,18 @@ public class MemberController {
             redirectAttributes.addFlashAttribute("successMessage", "Member added successfully");
             return "redirect:/admin/members";
         } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Could not add member: " + e.getMessage());
+            // e.printStackTrace();
+            // redirectAttributes.addFlashAttribute("errorMessage", "Could not add member: " + e.getMessage());
+            String errorMsg = "An error occurred: ";
+            if (e.getMessage().contains("Failed to convert")) {
+                errorMsg += "Invalid date format. Please enter in YYYY-MM-DD format";
+            } else {
+                errorMsg += "Cannot add member. Please try again.";
+            }
+
+            model.addAttribute("memberTypes", MemberType.values());
+            model.addAttribute("memberStatuses", MemberStatus.values());
+            model.addAttribute("errorMessage", errorMsg);
             return "redirect:/admin/members/add";
         }
     }
@@ -310,4 +348,17 @@ public class MemberController {
         }
     }
 
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(LocalDateTime.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) throws IllegalArgumentException {
+                try {
+                    setValue(LocalDateTime.parse(text + "T00:00:00"));
+                } catch (Exception e) {
+                    setValue(null);
+                }
+            }
+        });
+    }
 }
