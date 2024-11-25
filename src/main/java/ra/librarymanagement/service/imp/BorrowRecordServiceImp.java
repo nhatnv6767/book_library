@@ -285,4 +285,9 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
     public long countActiveBooksByMember(Long memberId) {
         return borrowRecordRepository.countActiveBooksByMember(memberId);
     }
+
+    @Override
+    public void update(BorrowRecord borrowRecord) {
+        borrowRecordRepository.update(borrowRecord);
+    }
 }

@@ -18,9 +18,11 @@ import ra.librarymanagement.service.IMemberService;
 import ra.librarymanagement.service.imp.BorrowRecordServiceImp;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin/borrows")
@@ -157,5 +159,34 @@ public class BorrowRecordController {
         model.addAttribute("endDate", endDate);
         model.addAttribute("memberSearch", memberSearch);
         return "admin/borrows/index";
+    }
+
+    @GetMapping("/view/{id}")
+    public String viewBorrow(@PathVariable Long id, Model model) {
+        BorrowRecord borrow = borrowRecordService.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid borrow ID"));
+        LocalDateTime now = LocalDateTime.now();
+        model.addAttribute("borrow", borrow);
+        model.addAttribute("now", now);
+
+        // calculate days until due/overdue
+        if (borrow.getStatus() == BorrowStatus.BORROWING) {
+            long daysUntilDue = ChronoUnit.DAYS.between(now, borrow.getDueDate());
+            if (daysUntilDue > 0) {
+                model.addAttribute("daysUntilDue", daysUntilDue);
+            } else {
+                model.addAttribute("daysOverdue", Math.abs(daysUntilDue));
+            }
+        }
+
+        // Calculate new due date for extension
+        if (borrow.getStatus() == BorrowStatus.BORROWING && borrow.getExtensionCount() < 2) {
+            LocalDateTime newDueDate = borrow.getDueDate().plusDays(LibraryConstants.DEFAULT_BORROW_DAYS);
+            model.addAttribute("newDueDate", newDueDate);
+        }
+
+        // add constants for fines
+        model.addAttribute("lostBookFine", LibraryConstants.LOST_BOOK_FINE);
+
+        return "admin/borrows/view";
     }
 }
