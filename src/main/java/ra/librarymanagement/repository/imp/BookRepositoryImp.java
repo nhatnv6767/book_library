@@ -13,6 +13,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,8 +131,8 @@ public class BookRepositoryImp implements IBookRepository {
     @Override
     public Long countAvailableBooks() {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-    CriteriaQuery<Long> query = cb.createQuery(Long.class);
-    Root<Book> root = query.from(Book.class);
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<Book> root = query.from(Book.class);
         // SELECT COUNT(*) FROM books WHERE available = true AND quantity > 0 AND status = 'AVAILABLE'
         query.select(cb.count(root)).where(
                 cb.and(
@@ -170,6 +172,46 @@ public class BookRepositoryImp implements IBookRepository {
         query.select(cb.count(root));
 
         return entityManager.createQuery(query).getSingleResult();
+    }
+
+    @Override
+    public List<Book> searchBooks(String keyword, BookStatus status, String category) {
+        // TODO Auto-generated method stub
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Book> query = cb.createQuery(Book.class);
+            Root<Book> root = query.from(Book.class);
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Search by keyword (title, author, isbn)
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String searchKeyword = "%" + keyword.toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("title")), searchKeyword),
+                        cb.like(cb.lower(root.get("author")), searchKeyword),
+                        cb.like(cb.lower(root.get("isbn")), searchKeyword)
+                ));
+            }
+
+            // Filter by status
+            if (status != null) {
+                predicates.add(cb.equal(root.get("bookStatus"), status));
+            }
+
+            // Filter by category
+            if (category != null && !category.trim().isEmpty()) {
+                predicates.add(cb.equal(root.get("category"), category));
+            }
+
+            if (!predicates.isEmpty()) {
+                query.where(predicates.toArray(new Predicate[0]));
+            }
+
+            return entityManager.createQuery(query).getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error searching books: " + e.getMessage());
+        }
     }
 
 }

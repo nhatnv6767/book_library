@@ -37,4 +37,6 @@ public interface IBookRepository {
 
     Long countAvailableBooks();
 
+    List<Book> searchBooks(String keyword, BookStatus status, String category);
+
 }

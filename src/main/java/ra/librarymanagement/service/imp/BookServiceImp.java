@@ -149,5 +149,15 @@ public class BookServiceImp implements IBookService {
         return bookRepository.countAvailableBooks();
     }
 
+    @Override
+    public List<Book> searchBooks(String keyword, BookStatus status, String category) {
+        // TODO Auto-generated method stub
+        return bookRepository.searchBooks(
+                keyword != null ? keyword.trim() : null,
+                status,
+                category != null ? category.trim() : null
+        );
+    }
+
 
 }

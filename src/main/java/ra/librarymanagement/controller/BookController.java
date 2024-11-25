@@ -106,7 +106,7 @@ public class BookController {
 
             if (!file.isEmpty() && file != null) {
 
-                if(existingBook.getCoverImage() != null){
+                if (existingBook.getCoverImage() != null) {
                     FileUploadUtil.deleteFile(existingBook.getCoverImage());
                 }
 
@@ -139,19 +139,10 @@ public class BookController {
 
     @GetMapping("/search")
     public String search(@RequestParam(required = false) String keyword,
-                         @RequestParam(required = false) String category,
                          @RequestParam(required = false) BookStatus status,
+                         @RequestParam(required = false) String category,
                          Model model) {
-        List<Book> books;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            books = bookService.findByTitleContaining(keyword);
-        } else if (category != null && !category.trim().isEmpty()) {
-            books = bookService.findByCategory(category);
-        } else if (status != null) {
-            books = bookService.findByStatus(status);
-        } else {
-            books = bookService.findAll();
-        }
+        List<Book> books = bookService.searchBooks(keyword, status, category);
 
         model.addAttribute("books", books);
         model.addAttribute("keyword", keyword);
