@@ -51,4 +51,6 @@ public interface IBorrowRecordRepository {
                                            BorrowStatus status,
                                            LocalDateTime startDate,
                                            LocalDateTime endDate);
+
+    Optional<BorrowRecord> findByIdWithMember(Long id);
 }

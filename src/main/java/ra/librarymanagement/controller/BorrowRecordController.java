@@ -163,7 +163,7 @@ public class BorrowRecordController {
 
     @GetMapping("/view/{id}")
     public String viewBorrow(@PathVariable Long id, Model model) {
-        BorrowRecord borrow = borrowRecordService.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid borrow ID"));
+        BorrowRecord borrow = borrowRecordService.findByIdWithMember(id).orElseThrow(() -> new IllegalArgumentException("Invalid borrow ID"));
         LocalDateTime now = LocalDateTime.now();
         model.addAttribute("borrow", borrow);
         model.addAttribute("now", now);

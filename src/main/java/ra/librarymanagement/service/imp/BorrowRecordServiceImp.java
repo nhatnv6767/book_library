@@ -290,4 +290,9 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
     public void update(BorrowRecord borrowRecord) {
         borrowRecordRepository.update(borrowRecord);
     }
+
+    @Override
+    public Optional<BorrowRecord> findByIdWithMember(Long id) {
+        return borrowRecordRepository.findByIdWithMember(id);
+    }
 }

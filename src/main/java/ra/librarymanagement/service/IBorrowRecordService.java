@@ -59,4 +59,6 @@ public interface IBorrowRecordService {
     long countActiveBooksByMember(Long memberId);
 
     void update(BorrowRecord borrowRecord);
+
+    Optional<BorrowRecord> findByIdWithMember(Long id);
 }
