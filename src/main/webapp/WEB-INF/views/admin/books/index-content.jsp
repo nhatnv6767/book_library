@@ -73,17 +73,8 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td colspan="8">
-                <c:if test="${empty books}">
-                    Books is empty
-                </c:if>
-                <c:if test="${not empty books}">
-                    Number of books: ${books.size()}
-                </c:if>
-            </td>
-        </tr>
-        <c:forEach items="${books}" var="book">
+
+        <c:forEach items="${books.content}" var="book">
             <tr>
                 <td>
                     <div class="avatar">
@@ -149,9 +140,9 @@
 <!-- Pagination -->
 <div class="flex justify-center mt-4">
     <div class="btn-group">
-        <c:forEach begin="1" end="${totalPages}" var="page">
-            <a href="?page=${page}&keyword=${param.keyword}&category=${param.category}&status=${param.status}"
-               class="btn ${currentPage == page ? 'btn-active' : ''}">${page}</a>
+        <c:forEach begin="0" end="${books.totalPages - 1}" var="i">
+            <a href="?page=${i}&keyword=${param.keyword}&category=${param.category}&status=${param.status}"
+               class="btn ${books.pageNumber == i ? 'btn-active' : ''}">${i + 1}</a>
         </c:forEach>
     </div>
 </div>

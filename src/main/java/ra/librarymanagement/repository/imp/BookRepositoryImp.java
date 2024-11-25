@@ -220,30 +220,37 @@ public class BookRepositoryImp implements IBookRepository {
     @Override
     public PageResponse<Book> searchBooks(String keyword, BookStatus status, String category, int page, int size) {
         // TODO Auto-generated method stub
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Book> query = cb.createQuery(Book.class);
-        Root<Book> root = query.from(Book.class);
-
-        // Build predicates like before
-        List<Predicate> predicates = buildSearchPredicates(keyword, status, category, cb, root);
-
-        // Count total results
-        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        Root<Book> countRoot = countQuery.from(Book.class);
-        countQuery.select(cb.count(countRoot));
-        if (!predicates.isEmpty()) {
-            countQuery.where(predicates.toArray(new Predicate[0]));
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            
+            // Main query
+            CriteriaQuery<Book> query = cb.createQuery(Book.class);
+            Root<Book> root = query.from(Book.class);
+            List<Predicate> predicates = buildSearchPredicates(keyword, status, category, cb, root);
+            if (!predicates.isEmpty()) {
+                query.where(predicates.toArray(new Predicate[0]));
+            }
+            
+            // Count query - sử dụng cùng predicates nhưng với root mới
+            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+            Root<Book> countRoot = countQuery.from(Book.class);
+            List<Predicate> countPredicates = buildSearchPredicates(keyword, status, category, cb, countRoot);
+            countQuery.select(cb.count(countRoot));
+            if (!countPredicates.isEmpty()) {
+                countQuery.where(countPredicates.toArray(new Predicate[0]));
+            }
+            Long totalElements = entityManager.createQuery(countQuery).getSingleResult();
+            
+            // Get paginated results
+            TypedQuery<Book> typedQuery = entityManager.createQuery(query);
+            typedQuery.setFirstResult(page * size);
+            typedQuery.setMaxResults(size);
+            List<Book> books = typedQuery.getResultList();
+            
+            return new PageResponse<>(books, page, size, totalElements);
+        } catch (Exception e) {
+            throw new RuntimeException("Error searching books: " + e.getMessage());
         }
-        Long totalElements = entityManager.createQuery(countQuery).getSingleResult();
-
-        // Get paginated results
-        TypedQuery<Book> typedQuery = entityManager.createQuery(query);
-        typedQuery.setFirstResult(page * size);
-        typedQuery.setMaxResults(size);
-
-        List<Book> books = typedQuery.getResultList();
-
-        return new PageResponse<>(books, page, size, totalElements);
     }
 
     private List<Predicate> buildSearchPredicates(String keyword, BookStatus status,

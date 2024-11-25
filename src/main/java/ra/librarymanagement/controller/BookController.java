@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import paging.PageResponse;
+import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.book.BookStatus;
 import ra.librarymanagement.service.IBookService;
@@ -43,16 +44,12 @@ public class BookController {
     @GetMapping
     @Transactional
     public String index(Model model) {
-        List<Book> books = bookService.findAll();
-//        System.out.println("Books: " + books);
-//
-//        for (Book book : books) {
-//            System.out.println("Book detail: " +
-//                    "ID=" + book.getBookId() +
-//                    ", Title=" + book.getTitle() +
-//                    ", ISBN=" + book.getIsbn() +
-//                    ", Status=" + book.getBookStatus());
-//        }
+        PageResponse<Book> books = bookService.searchBooks(
+                null, null, null,
+                0, // page đầu tiên
+                LibraryConstants.DEFAULT_PAGE_SIZE
+        );
+
         model.addAttribute("books", books);
         model.addAttribute("categories", getBookCategories());
         model.addAttribute("statuses", BookStatus.values());
