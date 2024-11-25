@@ -154,10 +154,10 @@
                     <div class="stat">
                         <div class="stat-title">Borrow Date</div>
                         <div class="stat-value text-primary text-2xl">
-                            <fmt:formatDate value="${borrow.borrowDate}" pattern="dd/MM/yyyy"/>
+                            ${borrow.borrowDate.format(dateFormatter)}
                         </div>
                         <div class="stat-desc">
-                            <fmt:formatDate value="${borrow.borrowDate}" pattern="HH:mm"/>
+                            ${borrow.borrowDate.format(timeFormatter)}
                         </div>
                     </div>
                 </div>
@@ -166,12 +166,13 @@
                     <div class="stat">
                         <div class="stat-title">Due Date</div>
                         <div class="stat-value text-warning text-2xl">
-                            <fmt:formatDate value="${borrow.dueDate}" pattern="dd/MM/yyyy"/>
+                            ${borrow.dueDate.format(dateFormatter)}
                         </div>
                         <div class="stat-desc">
+                            ${borrow.dueDate.format(timeFormatter)}
                             <c:if test="${borrow.status == 'BORROWING'}">
                                 <c:choose>
-                                    <c:when test="${borrow.dueDate.after(now)}">
+                                    <c:when test="${daysUntilDue > 0}">
                                         Due in ${daysUntilDue} days
                                     </c:when>
                                     <c:otherwise>
@@ -193,7 +194,7 @@
                             <c:choose>
                                 <c:when test="${borrow.returnDate != null}">
                                     <span class="text-success">
-                                        <fmt:formatDate value="${borrow.returnDate}" pattern="dd/MM/yyyy"/>
+                                            ${borrow.returnDate.format(dateFormatter)}
                                     </span>
                                 </c:when>
                                 <c:otherwise>
@@ -203,7 +204,7 @@
                         </div>
                         <div class="stat-desc">
                             <c:if test="${borrow.returnDate != null}">
-                                <fmt:formatDate value="${borrow.returnDate}" pattern="HH:mm"/>
+                                ${borrow.returnDate.format(timeFormatter)}
                             </c:if>
                             <c:if test="${not empty borrow.actualReturnCondition}">
                                 <div class="badge badge-ghost badge-sm">${borrow.actualReturnCondition}</div>
@@ -234,23 +235,43 @@
 </div>
 
 <!-- Return Modal -->
+<!-- <dialog id="return-modal" class="modal">
+<form method="POST" action="/admin/borrows/return/${borrow.borrowId}" class="modal-box">
+<h3 class="font-bold text-lg">Return Book</h3>
+<div class="py-4">
+<div class="form-control">
+<label class="label">
+<span class="label-text">Book Condition</span>
+</label>
+<textarea name="condition" class="textarea textarea-bordered" required
+placeholder="Enter the condition of the book upon return"></textarea>
+</div>
+</div>
+<div class="modal-action">
+<button type="button" class="btn" onclick="closeModal('return-modal')">Cancel</button>
+<button type="submit" class="btn btn-success">Return Book</button>
+</div>
+</form>
+</dialog> -->
 <dialog id="return-modal" class="modal">
-    <form method="POST" action="/admin/borrows/return/${borrow.borrowId}" class="modal-box">
+    <div class="modal-box">
         <h3 class="font-bold text-lg">Return Book</h3>
-        <div class="py-4">
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Book Condition</span>
-                </label>
-                <textarea name="condition" class="textarea textarea-bordered" required
-                          placeholder="Enter the condition of the book upon return"></textarea>
+        <form method="POST" action="/admin/borrows/return/${borrow.borrowId}">
+            <div class="py-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Book Condition</span>
+                    </label>
+                    <textarea name="condition" class="textarea textarea-bordered" required
+                              placeholder="Enter the condition of the book upon return"></textarea>
+                </div>
             </div>
-        </div>
-        <div class="modal-action">
-            <button type="button" class="btn" onclick="closeModal('return-modal')">Cancel</button>
-            <button type="submit" class="btn btn-success">Return Book</button>
-        </div>
-    </form>
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="closeModal('return-modal')">Cancel</button>
+                <button type="submit" class="btn btn-success">Return Book</button>
+            </div>
+        </form>
+    </div>
 </dialog>
 
 <!-- Extend Modal -->
@@ -258,8 +279,8 @@
     <form method="POST" action="/admin/borrows/extend/${borrow.borrowId}" class="modal-box">
         <h3 class="font-bold text-lg">Extend Borrow Period</h3>
         <div class="py-4">
-            <p>Current due date: <fmt:formatDate value="${borrow.dueDate}" pattern="dd/MM/yyyy"/></p>
-            <p>New due date will be: <fmt:formatDate value="${newDueDate}" pattern="dd/MM/yyyy"/></p>
+            <p>Current due date: ${borrow.dueDate.format(dateFormatter)}</p>
+            <p>New due date will be: ${newDueDate.format(dateFormatter)}</p>
 
             <div class="alert alert-info mt-4">
                 <i class="fas fa-info-circle"></i>
@@ -300,18 +321,54 @@
 
 <script>
     function showReturnModal() {
-        document.getElementById('return-modal').showModal();
+        try {
+            const modal = document.getElementById('return-modal');
+            if (modal) {
+                modal.showModal();
+            } else {
+                console.error('Return modal not found');
+            }
+        } catch (e) {
+            console.error('Error showing return modal:', e);
+        }
     }
 
     function showExtendModal() {
-        document.getElementById('extend-modal').showModal();
+        try {
+            const modal = document.getElementById('extend-modal');
+            if (modal) {
+                modal.showModal();
+            } else {
+                console.error('Extend modal not found');
+            }
+        } catch (e) {
+            console.error('Error showing extend modal:', e);
+        }
     }
 
     function showLostModal() {
-        document.getElementById('lost-modal').showModal();
+        try {
+            const modal = document.getElementById('lost-modal');
+            if (modal) {
+                modal.showModal();
+            } else {
+                console.error('Lost modal not found');
+            }
+        } catch (e) {
+            console.error('Error showing lost modal:', e);
+        }
     }
 
     function closeModal(modalId) {
-        document.getElementById(modalId).close();
+        try {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.close();
+            } else {
+                console.error(`Modal ${modalId} not found`);
+            }
+        } catch (e) {
+            console.error('Error closing modal:', e);
+        }
     }
 </script>
