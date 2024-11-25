@@ -98,8 +98,21 @@ public class MemberRepositoryImp implements IMemberRepository {
 
     @Override
     @Transactional
-    public void update(Member member) {
-        entityManager.merge(member);
+    public Member update(Member member) {
+        try {
+            if (member.getMemberId() == null) {
+                throw new IllegalArgumentException("Member ID cannot be null");
+            }
+            Member updatedMember = entityManager.merge(member);
+            // flush to get the updated member
+            entityManager.flush();
+
+            return updatedMember;
+
+        } catch (Exception e) {
+            logger.error("Error updating member: " + e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override

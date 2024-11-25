@@ -1,5 +1,7 @@
 package ra.librarymanagement.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +15,7 @@ import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
 import ra.librarymanagement.model.member.MemberType;
+import ra.librarymanagement.repository.imp.BorrowRecordRepositoryImp;
 import ra.librarymanagement.service.IMemberService;
 import ra.librarymanagement.util.FileUploadUtil;
 
@@ -27,6 +30,8 @@ import javax.validation.Valid;
 @RequestMapping("/admin/members")
 public class MemberController {
     private final IMemberService memberService;
+
+    private static final Logger logger = LoggerFactory.getLogger(BorrowRecordRepositoryImp.class);
 
     @Autowired
     public MemberController(IMemberService memberService) {
@@ -134,10 +139,44 @@ public class MemberController {
 
     @PostMapping("/edit/{id}")
     public String update(@PathVariable Long id,
-                         @ModelAttribute Member member,
+                         @ModelAttribute @Valid Member member,
+                         BindingResult bindingResult,
                          @RequestParam(value = "avatarFile", required = false) MultipartFile file,
-                         RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes,
+                         Model model) {
         try {
+
+            if (bindingResult.hasErrors()) {
+                StringBuilder errorMsg = new StringBuilder("Please check the information:<br>");
+                bindingResult.getFieldErrors().forEach(error -> {
+                    String fieldName;
+                    switch (error.getField()) {
+                        case "fullName":
+                            fieldName = "Full Name";
+                            break;
+                        case "email":
+                            fieldName = "Email";
+                            break;
+                        case "dateOfBirth":
+                            fieldName = "Date of Birth";
+                            break;
+                        case "expiryDate":
+                            fieldName = "Expiry Date";
+                            break;
+                        default:
+                            fieldName = error.getField();
+                            break;
+                    }
+                    errorMsg.append("- ").append(fieldName).append(": ")
+                            .append(error.getDefaultMessage()).append("<br>");
+                });
+
+                model.addAttribute("memberTypes", MemberType.values());
+                model.addAttribute("memberStatuses", MemberStatus.values());
+                model.addAttribute("errorMessage", errorMsg.toString());
+//                return "redirect:/admin/members/edit/" + id;
+                return "admin/members/form";
+            }
 
             // Get the existing member
             Member existingMember = memberService.findById(id)
@@ -146,7 +185,8 @@ public class MemberController {
             member.setCreatedAt(existingMember.getCreatedAt());
             member.setJoinDate(existingMember.getJoinDate());
             member.setUpdatedAt(LocalDateTime.now());
-
+            member.setMemberCode(existingMember.getMemberCode());
+            member.setBorrowRecord(existingMember.getBorrowRecord());
 
             if (member.getDateOfBirth() == null && existingMember.getDateOfBirth() != null) {
                 member.setDateOfBirth(existingMember.getDateOfBirth());
@@ -167,13 +207,29 @@ public class MemberController {
             } else {
                 member.setAvatar(existingMember.getAvatar());
             }
+            logger.debug("Member before update: {}", member);
             memberService.update(member);
+            logger.debug("Member after update: {}", member);
             redirectAttributes.addFlashAttribute("successMessage", "Member updated successfully");
             return "redirect:/admin/members";
         } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Could not update member: " + e.getMessage());
-            return "redirect:/admin/members/edit/" + id;
+            // e.printStackTrace();
+            // redirectAttributes.addFlashAttribute("errorMessage", "Could not update member: " + e.getMessage());
+            logger.error("Error updating member: ", e);
+            String errorMsg = "Cannot update member: ";
+            if (e.getMessage().contains("Member code already exists")) {
+                errorMsg += "Member code already exists";
+            } else if (e.getMessage().contains("Failed to convert")) {
+                errorMsg += "Invalid date format";
+            } else {
+                errorMsg += e.getMessage();
+            }
+
+            model.addAttribute("memberTypes", MemberType.values());
+            model.addAttribute("memberStatuses", MemberStatus.values());
+            model.addAttribute("errorMessage", errorMsg);
+//            return "redirect:/admin/members/edit/" + id;
+            return "admin/members/form";
         }
     }
 

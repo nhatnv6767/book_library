@@ -26,7 +26,7 @@ public interface IMemberRepository {
 
     void save(Member member);
 
-    void update(Member member);
+    Member update(Member member);
 
     void delete(Long id);
 
