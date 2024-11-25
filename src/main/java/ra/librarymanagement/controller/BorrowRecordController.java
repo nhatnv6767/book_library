@@ -1,9 +1,12 @@
 package ra.librarymanagement.controller;
 
 import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -12,15 +15,19 @@ import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.member.Member;
+import ra.librarymanagement.repository.imp.BorrowRecordRepositoryImp;
 import ra.librarymanagement.service.IBookService;
 import ra.librarymanagement.service.IBorrowRecordService;
 import ra.librarymanagement.service.IMemberService;
 import ra.librarymanagement.service.imp.BorrowRecordServiceImp;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin/borrows")
@@ -28,6 +35,8 @@ public class BorrowRecordController {
     private final IBorrowRecordService borrowRecordService;
     private final IBookService bookService;
     private final IMemberService memberService;
+
+    private static final Logger logger = LoggerFactory.getLogger(BorrowRecordRepositoryImp.class);
 
     @Autowired
     public BorrowRecordController(IBorrowRecordService borrowRecordService, IBookService bookService, IMemberService memberService) {
@@ -48,6 +57,16 @@ public class BorrowRecordController {
 
         List<Member> members = memberService.findAll();
         List<Book> availableBooks = bookService.findAvailableBooks();
+
+        // availableBooks.forEach(book -> {
+        //     System.out.println("Book: " + book.getTitle());
+        //     System.out.println("ISBN: " + book.getIsbn());
+        //     System.out.println("Author: " + book.getAuthor());
+        //     System.out.println("Category: " + book.getCategory());
+        //     System.out.println("Publisher: " + book.getPublisher());
+        //     System.out.println("Quantity: " + book.getQuantity());
+        //     System.out.println("-------------------");
+        // });
 
         Map<Long, Long> memberActiveBorrows = new HashMap<>();
         for (Member member : members) {
@@ -99,8 +118,8 @@ public class BorrowRecordController {
     }
 
     @GetMapping("/extend/{id}")
-    public String extendBorrow(@PathVariable Long id,
-                               RedirectAttributes redirectAttributes) {
+    public String handleExtendBorrowGet(@PathVariable Long id,
+                                        RedirectAttributes redirectAttributes) {
         try {
             // Extend borrow period
             // If successful, add success message
@@ -147,5 +166,106 @@ public class BorrowRecordController {
         model.addAttribute("endDate", endDate);
         model.addAttribute("memberSearch", memberSearch);
         return "admin/borrows/index";
+    }
+
+    @GetMapping("/view/{id}")
+    @Transactional(readOnly = true)
+    public String viewBorrow(@PathVariable Long id, Model model) {
+        try {
+            BorrowRecord borrow = borrowRecordService.findByIdWithMember(id).orElseThrow(() -> new IllegalArgumentException("Invalid borrow ID"));
+
+            Hibernate.initialize(borrow.getMember());
+            Hibernate.initialize(borrow.getBook());
+
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+            model.addAttribute("dateFormatter", dateFormatter);
+            model.addAttribute("timeFormatter", timeFormatter);
+
+            LocalDateTime now = LocalDateTime.now();
+            model.addAttribute("borrow", borrow);
+            model.addAttribute("now", now);
+
+            // calculate days until due/overdue
+            if (borrow.getStatus() == BorrowStatus.BORROWING) {
+                long daysUntilDue = ChronoUnit.DAYS.between(now, borrow.getDueDate());
+                if (daysUntilDue > 0) {
+                    model.addAttribute("daysUntilDue", daysUntilDue);
+                } else {
+                    model.addAttribute("daysOverdue", Math.abs(daysUntilDue));
+                }
+            }
+
+            // Calculate new due date for extension
+            if (borrow.getStatus() == BorrowStatus.BORROWING && borrow.getExtensionCount() < 2) {
+                LocalDateTime newDueDate = borrow.getDueDate().plusDays(LibraryConstants.DEFAULT_BORROW_DAYS);
+                model.addAttribute("newDueDate", newDueDate);
+            }
+
+            // add constants for fines
+            model.addAttribute("lostBookFine", LibraryConstants.LOST_BOOK_FINE);
+
+            return "admin/borrows/view";
+        } catch (Exception e) {
+            logger.error("Error viewing borrow record: ", e);
+            throw e; // Re-throw để xem stack trace đầy đủ
+        }
+    }
+
+    @PostMapping("/return/{id}")
+    public String returnBook(@PathVariable Long id,
+                             @RequestParam String condition,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            Optional<BorrowRecord> optionalBorrow = borrowRecordService.findById(id);
+            if (optionalBorrow.isPresent()) {
+                BorrowRecord borrow = optionalBorrow.get();
+                borrow.setActualReturnCondition(condition);
+                BorrowRecord returned = borrowRecordService.returnBook(id);
+                redirectAttributes.addFlashAttribute("successMessage", "Book returned successfully");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Borrow record not found");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Could not return book: " + e.getMessage());
+        }
+        return "redirect:/admin/borrows/view/" + id;
+    }
+
+    @PostMapping("/extend/{id}")
+    public String handleExtendBorrowPost(@PathVariable Long id,
+                                         RedirectAttributes redirectAttributes) {
+        try {
+            if (borrowRecordService.findById(id).isPresent()) {
+                if (borrowRecordService.extendBorrowPeriod(id)) {
+                    redirectAttributes.addFlashAttribute("successMessage", "Borrow period extended successfully");
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Could not extend borrow period");
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Borrow record not found");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error extending borrow period: " + e.getMessage());
+        }
+        return "redirect:/admin/borrows/view/" + id;
+    }
+
+    @PostMapping("/lost/{id}")
+    public String reportLost(@PathVariable Long id,
+                             @RequestParam String notes,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            BorrowRecord record = borrowRecordService.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Borrow record not found with id: " + id));
+
+            record.setNote(notes);
+            borrowRecordService.reportLostBook(id);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Book reported as lost successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error reporting book as lost: " + e.getMessage());
+        }
+        return "redirect:/admin/borrows/view/" + id;
     }
 }

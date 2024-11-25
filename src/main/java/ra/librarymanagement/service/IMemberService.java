@@ -40,4 +40,6 @@ public interface IMemberService {
 
     List<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status);
 
+    String getLastMemberCode();
+
 }

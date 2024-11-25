@@ -57,4 +57,9 @@ public interface IBorrowRecordService {
                                            LocalDateTime endDate);
 
     long countActiveBooksByMember(Long memberId);
+
+    void update(BorrowRecord borrowRecord);
+
+    Optional<BorrowRecord> findByIdWithMember(Long id);
+
 }

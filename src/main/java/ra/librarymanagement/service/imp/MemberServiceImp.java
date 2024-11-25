@@ -3,6 +3,8 @@ package ra.librarymanagement.service.imp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
 import ra.librarymanagement.model.member.MemberType;
@@ -64,9 +66,10 @@ public class MemberServiceImp implements IMemberService {
     @Transactional
     public Member save(Member member) {
         // Check if member code already exists
-        if (memberRepository.existsByMemberCode(member.getMemberCode())) {
-            throw new IllegalArgumentException("Member code already exists");
-        }
+        // if (memberRepository.existsByMemberCode(member.getMemberCode())) {
+        //     throw new IllegalArgumentException("Member code already exists");
+        // }
+        member.setMemberCode(generateNewMemberCode());
         if (memberRepository.existsByEmail(member.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -99,7 +102,7 @@ public class MemberServiceImp implements IMemberService {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        memberRepository.save(member);
+        memberRepository.update(member);
 
         return member;
     }
@@ -173,6 +176,26 @@ public class MemberServiceImp implements IMemberService {
                 memberType,
                 status
         );
+    }
+
+    @Override
+    public String getLastMemberCode() {
+        return memberRepository.getLastMemberCode();
+    }
+
+
+    private String generateNewMemberCode(){
+        String lastCode = memberRepository.getLastMemberCode();
+        if(lastCode == null){
+            return LibraryConstants.MEMBER_CODE_PREFIX + "0000001";
+        }
+
+        int lastNumber = Integer.parseInt(lastCode.substring(3));
+        if(lastNumber >= LibraryConstants.MAX_SEQUENCE_NUMBER){
+            throw new RuntimeException("Member code limit exceeded");
+        }
+
+        return String.format("%s%07d", LibraryConstants.MEMBER_CODE_PREFIX, lastNumber + 1);
     }
 
 

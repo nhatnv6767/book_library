@@ -98,8 +98,55 @@ public class MemberRepositoryImp implements IMemberRepository {
 
     @Override
     @Transactional
-    public void update(Member member) {
-        entityManager.merge(member);
+    public Member update(Member member) {
+        try {
+
+            if (member.getMemberId() == null) {
+                throw new IllegalArgumentException("Member ID cannot be null");
+            }
+
+            Member existingMember = entityManager.find(Member.class, member.getMemberId());
+            if (existingMember == null) {
+                throw new IllegalArgumentException("Member ID cannot be null");
+            }
+
+            // Keep fields that cannot be changed or are automatically updated
+            member.setMemberCode(existingMember.getMemberCode()); // unique, cannot be changed
+            member.setCreatedAt(existingMember.getCreatedAt()); // @CreationTimestamp, cannot update
+            member.setJoinDate(existingMember.getJoinDate()); // Join date cannot be changed
+            member.setBorrowRecord(existingMember.getBorrowRecord()); // Keep relationship
+
+            // Update timestamp
+            member.setUpdatedAt(LocalDateTime.now());
+
+            // Handle nullable fields
+            if (member.getAddress() == null) {
+                member.setAddress(existingMember.getAddress());
+            }
+            if (member.getDateOfBirth() == null) {
+                member.setDateOfBirth(existingMember.getDateOfBirth());
+            }
+            if (member.getAvatar() == null) {
+                member.setAvatar(existingMember.getAvatar());
+            }
+            if (member.getNote() == null) {
+                member.setNote(existingMember.getNote());
+            }
+            if (member.getIdentityCard() == null) {
+                member.setIdentityCard(existingMember.getIdentityCard());
+            }
+            if (member.getExpiryDate() == null) {
+                member.setExpiryDate(existingMember.getExpiryDate());
+            }
+
+            Member updatedMember = entityManager.merge(member);
+            entityManager.flush();
+            return updatedMember;
+
+        } catch (Exception e) {
+            logger.error("Error updating member: " + e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
@@ -263,6 +310,25 @@ public class MemberRepositoryImp implements IMemberRepository {
                     .getSingleResult());
         } catch (NoResultException e) {
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public String getLastMemberCode() {
+        // TODO Auto-generated method stub
+        try{
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<String> query = cb.createQuery(String.class);
+            Root<Member> root = query.from(Member.class);
+
+            query.select(root.get("memberCode")).where(
+                cb.like(root.get("memberCode"), "MEM%")
+            ).orderBy(cb.desc(root.get("memberCode")));
+
+            return entityManager.createQuery(query).setMaxResults(1).getSingleResult();
+
+        } catch (NoResultException e) {
+            return null;
         }
     }
 }

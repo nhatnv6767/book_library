@@ -26,7 +26,7 @@ public interface IMemberRepository {
 
     void save(Member member);
 
-    void update(Member member);
+    Member update(Member member);
 
     void delete(Long id);
 
@@ -43,4 +43,6 @@ public interface IMemberRepository {
     int countNewMembersThisMonth();
 
     Optional<Member> findByIdWithBorrowRecords(Long id);
+
+    String getLastMemberCode();
 }

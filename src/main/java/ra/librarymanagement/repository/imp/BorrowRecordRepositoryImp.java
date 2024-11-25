@@ -531,4 +531,24 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public Optional<BorrowRecord> findByIdWithMember(Long id) {
+        // TODO Auto-generated method stub
+        try{
+            CriteriaUtil.Result<BorrowRecord> result = CriteriaUtil.getResult(entityManager, BorrowRecord.class);
+
+            result.root.fetch("member", JoinType.LEFT);
+            result.root.fetch("book", JoinType.LEFT);
+
+            result.query.where(result.cb.equal(result.root.get("borrowId"), id));
+
+            BorrowRecord record = entityManager.createQuery(result.query).getSingleResult();
+
+            return Optional.ofNullable(record);
+        } catch (Exception e) {
+            logger.error("Error finding borrow record by id: " + e.getMessage(), e);
+            return Optional.empty();
+        }
+    }
 }

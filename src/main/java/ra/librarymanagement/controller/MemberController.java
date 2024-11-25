@@ -1,8 +1,12 @@
 package ra.librarymanagement.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -11,18 +15,23 @@ import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
 import ra.librarymanagement.model.member.MemberType;
+import ra.librarymanagement.repository.imp.BorrowRecordRepositoryImp;
 import ra.librarymanagement.service.IMemberService;
 import ra.librarymanagement.util.FileUploadUtil;
 
+import java.beans.PropertyEditorSupport;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 @Controller
 @RequestMapping("/admin/members")
 public class MemberController {
-
     private final IMemberService memberService;
+
+    private static final Logger logger = LoggerFactory.getLogger(BorrowRecordRepositoryImp.class);
 
     @Autowired
     public MemberController(IMemberService memberService) {
@@ -52,10 +61,46 @@ public class MemberController {
     }
 
     @PostMapping("/add")
-    public String add(@ModelAttribute Member member,
+    public String add(@ModelAttribute @Valid Member member,
+                      BindingResult bindingResult,
                       @RequestParam("avatarFile") MultipartFile file,
-                      RedirectAttributes redirectAttributes) {
+                      RedirectAttributes redirectAttributes,
+                      Model model) {
         try {
+
+            if (bindingResult.hasErrors()) {
+                StringBuilder errorMsg = new StringBuilder("Please check the information again:<br>");
+                bindingResult.getFieldErrors().forEach(error -> {
+                    String fieldName;
+                    switch (error.getField()) {
+                        case "fullName":
+                            fieldName = "Full name";
+                            break;
+                        case "email":
+                            fieldName = "Email";
+                            break;
+                        case "dateOfBirth":
+                            fieldName = "Date of birth";
+                            break;
+                        case "expiryDate":
+                            fieldName = "Expiry date";
+                            break;
+                        default:
+                            fieldName = error.getField();
+                            break;
+                    }
+                    errorMsg.append("- ").append(fieldName).append(": ")
+                            .append(error.getDefaultMessage()).append("<br>");
+                });
+
+                // Add attributes for form
+                model.addAttribute("memberTypes", MemberType.values());
+                model.addAttribute("memberStatuses", MemberStatus.values());
+                model.addAttribute("errorMessage", errorMsg.toString());
+
+                return "admin/members/form";
+            }
+
             if (!file.isEmpty()) {
                 String filename = FileUploadUtil.saveFile(file, "avatars");
                 member.setAvatar(filename);
@@ -66,8 +111,18 @@ public class MemberController {
             redirectAttributes.addFlashAttribute("successMessage", "Member added successfully");
             return "redirect:/admin/members";
         } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Could not add member: " + e.getMessage());
+            // e.printStackTrace();
+            // redirectAttributes.addFlashAttribute("errorMessage", "Could not add member: " + e.getMessage());
+            String errorMsg = "An error occurred: ";
+            if (e.getMessage().contains("Failed to convert")) {
+                errorMsg += "Invalid date format. Please enter in YYYY-MM-DD format";
+            } else {
+                errorMsg += "Cannot add member. Please try again.";
+            }
+
+            model.addAttribute("memberTypes", MemberType.values());
+            model.addAttribute("memberStatuses", MemberStatus.values());
+            model.addAttribute("errorMessage", errorMsg);
             return "redirect:/admin/members/add";
         }
     }
@@ -84,10 +139,44 @@ public class MemberController {
 
     @PostMapping("/edit/{id}")
     public String update(@PathVariable Long id,
-                         @ModelAttribute Member member,
+                         @ModelAttribute @Valid Member member,
+                         BindingResult bindingResult,
                          @RequestParam(value = "avatarFile", required = false) MultipartFile file,
-                         RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes,
+                         Model model) {
         try {
+
+            if (bindingResult.hasErrors()) {
+                StringBuilder errorMsg = new StringBuilder("Please check the information:<br>");
+                bindingResult.getFieldErrors().forEach(error -> {
+                    String fieldName;
+                    switch (error.getField()) {
+                        case "fullName":
+                            fieldName = "Full Name";
+                            break;
+                        case "email":
+                            fieldName = "Email";
+                            break;
+                        case "dateOfBirth":
+                            fieldName = "Date of Birth";
+                            break;
+                        case "expiryDate":
+                            fieldName = "Expiry Date";
+                            break;
+                        default:
+                            fieldName = error.getField();
+                            break;
+                    }
+                    errorMsg.append("- ").append(fieldName).append(": ")
+                            .append(error.getDefaultMessage()).append("<br>");
+                });
+
+                model.addAttribute("memberTypes", MemberType.values());
+                model.addAttribute("memberStatuses", MemberStatus.values());
+                model.addAttribute("errorMessage", errorMsg.toString());
+//                return "redirect:/admin/members/edit/" + id;
+                return "admin/members/form";
+            }
 
             // Get the existing member
             Member existingMember = memberService.findById(id)
@@ -96,7 +185,8 @@ public class MemberController {
             member.setCreatedAt(existingMember.getCreatedAt());
             member.setJoinDate(existingMember.getJoinDate());
             member.setUpdatedAt(LocalDateTime.now());
-
+            member.setMemberCode(existingMember.getMemberCode());
+            member.setBorrowRecord(existingMember.getBorrowRecord());
 
             if (member.getDateOfBirth() == null && existingMember.getDateOfBirth() != null) {
                 member.setDateOfBirth(existingMember.getDateOfBirth());
@@ -117,13 +207,29 @@ public class MemberController {
             } else {
                 member.setAvatar(existingMember.getAvatar());
             }
+            logger.debug("Member before update: {}", member);
             memberService.update(member);
+            logger.debug("Member after update: {}", member);
             redirectAttributes.addFlashAttribute("successMessage", "Member updated successfully");
             return "redirect:/admin/members";
         } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Could not update member: " + e.getMessage());
-            return "redirect:/admin/members/edit/" + id;
+            // e.printStackTrace();
+            // redirectAttributes.addFlashAttribute("errorMessage", "Could not update member: " + e.getMessage());
+            logger.error("Error updating member: ", e);
+            String errorMsg = "Cannot update member: ";
+            if (e.getMessage().contains("Member code already exists")) {
+                errorMsg += "Member code already exists";
+            } else if (e.getMessage().contains("Failed to convert")) {
+                errorMsg += "Invalid date format";
+            } else {
+                errorMsg += e.getMessage();
+            }
+
+            model.addAttribute("memberTypes", MemberType.values());
+            model.addAttribute("memberStatuses", MemberStatus.values());
+            model.addAttribute("errorMessage", errorMsg);
+//            return "redirect:/admin/members/edit/" + id;
+            return "admin/members/form";
         }
     }
 
@@ -154,7 +260,7 @@ public class MemberController {
             Member member = memberService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
 
-            // Tạo statistics cho member này
+            // Create statistics for this member
             long totalBorrows = member.getBorrowRecord().size();
             long currentBorrows = member.getBorrowRecord().stream()
                     .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
@@ -186,7 +292,7 @@ public class MemberController {
         }
     }
 
-    // Thêm phương thức suspend
+    // Add suspend method
     @PostMapping("/suspend/{id}")
     public String suspendMember(@PathVariable Long id,
                                 @RequestParam("suspensionReason") String reason,
@@ -195,14 +301,14 @@ public class MemberController {
             Member member = memberService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
 
-            // Không thể suspend member đã bị suspend hoặc expired
+            // Cannot suspend member who is already suspended or expired
             if (!member.getStatus().equals(MemberStatus.ACTIVE)) {
                 redirectAttributes.addFlashAttribute("errorMessage",
                         "Cannot suspend member. Member is not active.");
                 return "redirect:/admin/members/view/" + id;
             }
 
-            // Check nếu member đang mượn sách
+            // Check if member has active borrows
             long activeBorrows = member.getBorrowRecord().stream()
                     .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
                     .count();
@@ -212,7 +318,7 @@ public class MemberController {
                 return "redirect:/admin/members/view/" + id;
             }
 
-            // Cập nhật status và note
+            // Update status and note
             member.setStatus(MemberStatus.SUSPENDED);
             member.setNote(member.getNote() != null ?
                     member.getNote() + "\n[Suspended] " + reason :
@@ -231,7 +337,7 @@ public class MemberController {
         }
     }
 
-    // Thêm phương thức activate (để reactivate suspended member)
+    // Add activate method (to reactivate suspended member)
     @GetMapping("/activate/{id}")
     public String activateMember(@PathVariable Long id,
                                  RedirectAttributes redirectAttributes) {
@@ -239,7 +345,7 @@ public class MemberController {
             Member member = memberService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
 
-            // Chỉ có thể activate member bị suspended
+            // Can only activate suspended member
             if (!member.getStatus().equals(MemberStatus.SUSPENDED)) {
                 redirectAttributes.addFlashAttribute("errorMessage",
                         "Cannot activate member. Member is not suspended.");
@@ -262,7 +368,7 @@ public class MemberController {
         }
     }
 
-    // Thêm phương thức delete
+    // Add delete method
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id,
                          @RequestParam(required = false) String reason,
@@ -271,7 +377,7 @@ public class MemberController {
             Member member = memberService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid member Id:" + id));
 
-            // Check nếu member đang mượn sách
+            // Check if member has active borrows
             long activeBorrows = member.getBorrowRecord().stream()
                     .filter(record -> record.getStatus() == BorrowStatus.BORROWING)
                     .count();
@@ -281,7 +387,7 @@ public class MemberController {
                 return "redirect:/admin/members";
             }
 
-            // Delete avatar file nếu có
+            // Delete avatar file if exists
             if (member.getAvatar() != null) {
                 FileUploadUtil.deleteFile(member.getAvatar());
             }
@@ -298,4 +404,17 @@ public class MemberController {
         }
     }
 
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(LocalDateTime.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) throws IllegalArgumentException {
+                try {
+                    setValue(LocalDateTime.parse(text + "T00:00:00"));
+                } catch (Exception e) {
+                    setValue(null);
+                }
+            }
+        });
+    }
 }

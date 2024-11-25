@@ -8,9 +8,14 @@ import lombok.ToString;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,15 +31,21 @@ public class Member {
     private Long memberId;
 
     @Column(name = "member_code", nullable = false, unique = true, length = 10)
+    @Pattern(regexp = "^MEM\\d{7}$", message = "Invalid member code format")
     private String memberCode;
 
     @Column(name = "full_name", nullable = false, length = 100)
+    @NotBlank(message = "Full name is required")
     private String fullName;
 
     @Column(name = "email", nullable = false, unique = true, length = 100)
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format") 
     private String email;
 
     @Column(name = "phone", nullable = true, length = 15)
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
     private String phone;
 
     @Column(name = "address", nullable = true, length = 255)
