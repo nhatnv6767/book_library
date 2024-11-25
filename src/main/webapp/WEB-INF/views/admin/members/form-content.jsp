@@ -39,10 +39,15 @@
                     <!-- Full Name -->
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Full Name*</span>
+                            <span class="label-text">Full Name</span>
                         </label>
                         <input type="text" name="fullName" value="${member.fullName}"
-                               class="input input-bordered" required/>
+                               class="input input-bordered ${bindingResult.hasFieldErrors('fullName') ? 'input-error' : ''}" />
+                        <c:if test="${bindingResult.hasFieldErrors('fullName')}">
+                            <label class="label">
+                                <span class="label-text-alt text-error">${bindingResult.getFieldError('fullName').defaultMessage}</span>
+                            </label>
+                        </c:if>
                     </div>
 
                     <!-- Email -->

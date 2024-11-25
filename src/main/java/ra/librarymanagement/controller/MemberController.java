@@ -3,6 +3,7 @@ package ra.librarymanagement.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -53,9 +54,20 @@ public class MemberController {
 
     @PostMapping("/add")
     public String add(@ModelAttribute Member member,
+                      BindingResult bindingResult,
                       @RequestParam("avatarFile") MultipartFile file,
-                      RedirectAttributes redirectAttributes) {
+                      RedirectAttributes redirectAttributes, Model model) {
         try {
+
+
+            if (bindingResult.hasErrors()) {
+                model.addAttribute("memberTypes", MemberType.values());
+                model.addAttribute("memberStatuses", MemberStatus.values());
+                bindingResult.getFieldErrors().forEach(error -> 
+                model.addAttribute(error.getField() + "Error", "input-error"));
+                return "admin/members/form";
+            }
+
             if (!file.isEmpty()) {
                 String filename = FileUploadUtil.saveFile(file, "avatars");
                 member.setAvatar(filename);

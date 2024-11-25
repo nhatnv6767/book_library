@@ -163,7 +163,7 @@
         alerts.forEach(alert => {
             alert.style.display = 'none';
         });
-    }, 5000);
+    }, 9000);
 </script>
 </body>
 </html>
