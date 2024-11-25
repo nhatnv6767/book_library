@@ -43,12 +43,11 @@ public class BookController {
 
     @GetMapping
     @Transactional
-    public String index(Model model) {
-        PageResponse<Book> books = bookService.searchBooks(
-                null, null, null,
-                0, // page đầu tiên
-                LibraryConstants.DEFAULT_PAGE_SIZE
-        );
+    public String index(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+        PageResponse<Book> books = bookService.searchBooks(null, null, null, page, size);
 
         model.addAttribute("books", books);
         model.addAttribute("categories", getBookCategories());
@@ -143,7 +142,13 @@ public class BookController {
                          @RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "10") int size,
                          Model model) {
-        PageResponse<Book> books = bookService.searchBooks(keyword, status, category, page, size);
+        PageResponse<Book> books = bookService.searchBooks(
+                keyword != null ? keyword.trim() : null,
+                status,
+                category != null ? category.trim() : null,
+                page,
+                size
+        );
 
         model.addAttribute("books", books);
         model.addAttribute("currentPage", books.getPageNumber());
