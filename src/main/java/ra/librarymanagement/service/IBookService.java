@@ -6,6 +6,8 @@ import ra.librarymanagement.model.book.BookStatus;
 import java.util.List;
 import java.util.Optional;
 
+import paging.PageResponse;
+
 public interface IBookService {
     List<Book> findAll();
 
@@ -40,6 +42,9 @@ public interface IBookService {
     Long countAvailableBooks();
 
     List<Book> searchBooks(String keyword, BookStatus status, String category);
+
+    PageResponse<Book> searchBooks(String keyword, BookStatus status, 
+                                 String category, int page, int size);
 
 
 }

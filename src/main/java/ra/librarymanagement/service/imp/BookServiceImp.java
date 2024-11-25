@@ -3,6 +3,8 @@ package ra.librarymanagement.service.imp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import paging.PageResponse;
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.book.BookStatus;
 import ra.librarymanagement.repository.IBookRepository;
@@ -159,5 +161,9 @@ public class BookServiceImp implements IBookService {
         );
     }
 
+    @Override
+    public PageResponse<Book> searchBooks(String keyword, BookStatus status, String category, int page, int size) {
+        return bookRepository.searchBooks(keyword, status, category, page, size);
+    }
 
 }

@@ -7,6 +7,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import paging.PageResponse;
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.book.BookStatus;
 import ra.librarymanagement.service.IBookService;
@@ -141,10 +143,14 @@ public class BookController {
     public String search(@RequestParam(required = false) String keyword,
                          @RequestParam(required = false) BookStatus status,
                          @RequestParam(required = false) String category,
+                         @RequestParam(defaultValue = "0") int page,
+                         @RequestParam(defaultValue = "10") int size,
                          Model model) {
-        List<Book> books = bookService.searchBooks(keyword, status, category);
+        PageResponse<Book> books = bookService.searchBooks(keyword, status, category, page, size);
 
         model.addAttribute("books", books);
+        model.addAttribute("currentPage", books.getPageNumber());
+        model.addAttribute("totalPages", books.getTotalPages());
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedStatus", status);

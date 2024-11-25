@@ -2,6 +2,8 @@ package ra.librarymanagement.repository.imp;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import paging.PageResponse;
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.book.BookStatus;
 import ra.librarymanagement.repository.IBookRepository;
@@ -9,6 +11,7 @@ import ra.librarymanagement.util.CriteriaUtil;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -214,4 +217,60 @@ public class BookRepositoryImp implements IBookRepository {
         }
     }
 
+    @Override
+    public PageResponse<Book> searchBooks(String keyword, BookStatus status, String category, int page, int size) {
+        // TODO Auto-generated method stub
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Book> query = cb.createQuery(Book.class);
+        Root<Book> root = query.from(Book.class);
+
+        // Build predicates like before
+        List<Predicate> predicates = buildSearchPredicates(keyword, status, category, cb, root);
+
+        // Count total results
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<Book> countRoot = countQuery.from(Book.class);
+        countQuery.select(cb.count(countRoot));
+        if (!predicates.isEmpty()) {
+            countQuery.where(predicates.toArray(new Predicate[0]));
+        }
+        Long totalElements = entityManager.createQuery(countQuery).getSingleResult();
+
+        // Get paginated results
+        TypedQuery<Book> typedQuery = entityManager.createQuery(query);
+        typedQuery.setFirstResult(page * size);
+        typedQuery.setMaxResults(size);
+
+        List<Book> books = typedQuery.getResultList();
+
+        return new PageResponse<>(books, page, size, totalElements);
+    }
+
+    private List<Predicate> buildSearchPredicates(String keyword, BookStatus status,
+                                                  String category, CriteriaBuilder cb,
+                                                  Root<Book> root) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Search by keyword (title, author, isbn)
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String searchKeyword = "%" + keyword.toLowerCase() + "%";
+            predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("title")), searchKeyword),
+                    cb.like(cb.lower(root.get("author")), searchKeyword),
+                    cb.like(cb.lower(root.get("isbn")), searchKeyword)
+            ));
+        }
+    
+        // Filter by status
+        if (status != null) {
+            predicates.add(cb.equal(root.get("bookStatus"), status));
+        }
+
+        // Filter by category
+        if (category != null && !category.trim().isEmpty()) {
+            predicates.add(cb.equal(root.get("category"), category));
+        }
+
+        return predicates;
+    }
 }
