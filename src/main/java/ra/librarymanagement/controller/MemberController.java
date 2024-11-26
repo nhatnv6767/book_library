@@ -10,6 +10,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import paging.PageResponse;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.member.Member;
@@ -45,8 +46,13 @@ public class MemberController {
     // }
 
     @GetMapping
-    public String index(Model model) {
-        model.addAttribute("members", memberService.findAll());
+    public String index(@RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size,
+                        Model model) {
+
+        PageResponse<Member> members = memberService.searchMembers(null, null, null, page, size);
+
+        model.addAttribute("members", members);
         model.addAttribute("memberTypes", MemberType.values());
         model.addAttribute("memberStatuses", MemberStatus.values());
         return "admin/members/index";
@@ -237,9 +243,18 @@ public class MemberController {
     public String search(@RequestParam(required = false) String keyword,
                          @RequestParam(required = false) MemberType memberType,
                          @RequestParam(required = false) MemberStatus status,
+                         @RequestParam(defaultValue = "0") int page,
+                         @RequestParam(defaultValue = "10") int size,
                          Model model) {
         // If no search criteria is provided, return all members
-        List<Member> members = memberService.searchMembers(keyword, memberType, status);
+        PageResponse<Member> members = memberService.searchMembers(
+                keyword != null ? keyword.trim() : null,
+                memberType,
+                status,
+                page,
+                size
+        );
+
 
         model.addAttribute("members", members);
         model.addAttribute("keyword", keyword);
