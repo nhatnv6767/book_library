@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import paging.PageResponse;
 import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
@@ -46,8 +48,20 @@ public class BorrowRecordController {
     }
 
     @GetMapping
-    public String index(Model model) {
-        model.addAttribute("borrows", borrowRecordService.findAll());
+    @Transactional(readOnly = true)
+    public String index(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+        PageResponse<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(
+                null, null, null, null, page, size);
+
+        borrows.getContent().forEach(borrow -> {
+            Hibernate.initialize(borrow.getMember());
+            Hibernate.initialize(borrow.getBook());
+        });
+
+        model.addAttribute("borrows", borrows);
         model.addAttribute("statuses", BorrowStatus.values());
         return "admin/borrows/index";
     }
@@ -149,15 +163,16 @@ public class BorrowRecordController {
     }
 
     @GetMapping("/search")
-    public String search(@RequestParam(required = false) String memberSearch,
-                         @RequestParam(required = false) BorrowStatus status,
-                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-                         Model model) {
-        List<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(memberSearch, status, startDate, endDate);
-        // borrows.forEach(borrow -> {
-        //     Hibernate.initialize(borrow.getMember());
-        // });
+    public String search(
+            @RequestParam(required = false) String memberSearch,
+            @RequestParam(required = false) BorrowStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+        PageResponse<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(
+                memberSearch, status, startDate, endDate, page, size);
 
         model.addAttribute("borrows", borrows);
         model.addAttribute("statuses", BorrowStatus.values());

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import paging.PageResponse;
+
 public interface IBorrowRecordService {
     List<BorrowRecord> findAll();
 
@@ -61,5 +63,8 @@ public interface IBorrowRecordService {
     void update(BorrowRecord borrowRecord);
 
     Optional<BorrowRecord> findByIdWithMember(Long id);
+
+    PageResponse<BorrowRecord> searchBorrowRecords(String memberSearch, BorrowStatus status, 
+        LocalDateTime startDate, LocalDateTime endDate, int page, int size);
 
 }

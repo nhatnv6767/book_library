@@ -2,6 +2,8 @@ package ra.librarymanagement.repository.imp;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import paging.PageResponse;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.book.Book;
@@ -535,7 +537,7 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
     @Override
     public Optional<BorrowRecord> findByIdWithMember(Long id) {
         // TODO Auto-generated method stub
-        try{
+        try {
             CriteriaUtil.Result<BorrowRecord> result = CriteriaUtil.getResult(entityManager, BorrowRecord.class);
 
             result.root.fetch("member", JoinType.LEFT);
@@ -550,5 +552,77 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
             logger.error("Error finding borrow record by id: " + e.getMessage(), e);
             return Optional.empty();
         }
+    }
+
+    @Override
+    public PageResponse<BorrowRecord> searchBorrowRecords(String memberSearch, BorrowStatus status,
+                                                          LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+            // Main query
+            CriteriaQuery<BorrowRecord> query = cb.createQuery(BorrowRecord.class);
+            Root<BorrowRecord> root = query.from(BorrowRecord.class);
+            Join<BorrowRecord, Member> memberJoin = root.join("member");
+
+            List<Predicate> predicates = buildSearchPredicates(memberSearch, status, startDate, endDate, cb, root, memberJoin);
+            if (!predicates.isEmpty()) {
+                query.where(predicates.toArray(new Predicate[0]));
+            }
+
+            // Order by borrow date desc
+            query.orderBy(cb.desc(root.get("borrowDate")));
+
+            // Count query
+            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+            Root<BorrowRecord> countRoot = countQuery.from(BorrowRecord.class);
+            Join<BorrowRecord, Member> countMemberJoin = countRoot.join("member");
+            List<Predicate> countPredicates = buildSearchPredicates(memberSearch, status, startDate, endDate,
+                    cb, countRoot, countMemberJoin);
+            countQuery.select(cb.count(countRoot));
+            if (!countPredicates.isEmpty()) {
+                countQuery.where(countPredicates.toArray(new Predicate[0]));
+            }
+
+            Long totalElements = entityManager.createQuery(countQuery).getSingleResult();
+
+            // Get paginated results
+            TypedQuery<BorrowRecord> typedQuery = entityManager.createQuery(query);
+            typedQuery.setFirstResult(page * size);
+            typedQuery.setMaxResults(size);
+            List<BorrowRecord> borrows = typedQuery.getResultList();
+
+            return new PageResponse<>(borrows, page, size, totalElements);
+        } catch (Exception e) {
+            throw new RuntimeException("Error searching borrow records: " + e.getMessage());
+        }
+    }
+
+    private List<Predicate> buildSearchPredicates(String memberSearch, BorrowStatus status,
+                                                  LocalDateTime startDate, LocalDateTime endDate, CriteriaBuilder cb,
+                                                  Root<BorrowRecord> root, Join<BorrowRecord, Member> memberJoin) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (memberSearch != null && !memberSearch.trim().isEmpty()) {
+            String search = "%" + memberSearch.toLowerCase() + "%";
+            predicates.add(cb.or(
+                    cb.like(cb.lower(memberJoin.get("memberCode")), search),
+                    cb.like(cb.lower(memberJoin.get("fullName")), search)
+            ));
+        }
+
+        if (status != null) {
+            predicates.add(cb.equal(root.get("status"), status));
+        }
+
+        if (startDate != null) {
+            predicates.add(cb.greaterThanOrEqualTo(root.get("borrowDate"), startDate));
+        }
+
+        if (endDate != null) {
+            predicates.add(cb.lessThanOrEqualTo(root.get("borrowDate"), endDate));
+        }
+
+        return predicates;
     }
 }
