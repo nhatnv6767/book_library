@@ -1,5 +1,6 @@
 package ra.librarymanagement.service;
 
+import paging.PageResponse;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
 import ra.librarymanagement.model.member.MemberType;
@@ -41,5 +42,7 @@ public interface IMemberService {
     List<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status);
 
     String getLastMemberCode();
+
+    PageResponse<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status, int page, int size);
 
 }

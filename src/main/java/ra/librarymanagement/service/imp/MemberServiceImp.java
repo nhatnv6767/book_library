@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import paging.PageResponse;
 import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
@@ -183,15 +184,22 @@ public class MemberServiceImp implements IMemberService {
         return memberRepository.getLastMemberCode();
     }
 
+    @Override
+    public PageResponse<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status, int page, int size) {
+        return memberRepository.searchMembers(keyword, memberType, status, page, size);
 
-    private String generateNewMemberCode(){
+
+    }
+
+
+    private String generateNewMemberCode() {
         String lastCode = memberRepository.getLastMemberCode();
-        if(lastCode == null){
+        if (lastCode == null) {
             return LibraryConstants.MEMBER_CODE_PREFIX + "0000001";
         }
 
         int lastNumber = Integer.parseInt(lastCode.substring(3));
-        if(lastNumber >= LibraryConstants.MAX_SEQUENCE_NUMBER){
+        if (lastNumber >= LibraryConstants.MAX_SEQUENCE_NUMBER) {
             throw new RuntimeException("Member code limit exceeded");
         }
 

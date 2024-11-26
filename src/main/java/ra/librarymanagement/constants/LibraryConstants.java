@@ -17,4 +17,7 @@ public class LibraryConstants {
     public static final String MEMBER_CODE_PREFIX = "MEM";
     public static final int MEMBER_CODE_LENGTH = 10;
     public static final int MAX_SEQUENCE_NUMBER = 9999999;
+
+    public static final int DEFAULT_PAGE_SIZE = 10;
+    public static final int DEFAULT_PAGE_NUMBER = 0;
 }

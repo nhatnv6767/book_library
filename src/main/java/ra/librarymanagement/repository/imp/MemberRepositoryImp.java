@@ -2,6 +2,7 @@ package ra.librarymanagement.repository.imp;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import paging.PageResponse;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.member.Member;
@@ -13,6 +14,7 @@ import ra.librarymanagement.util.CriteriaUtil;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -316,13 +318,13 @@ public class MemberRepositoryImp implements IMemberRepository {
     @Override
     public String getLastMemberCode() {
         // TODO Auto-generated method stub
-        try{
+        try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<String> query = cb.createQuery(String.class);
             Root<Member> root = query.from(Member.class);
 
             query.select(root.get("memberCode")).where(
-                cb.like(root.get("memberCode"), "MEM%")
+                    cb.like(root.get("memberCode"), "MEM%")
             ).orderBy(cb.desc(root.get("memberCode")));
 
             return entityManager.createQuery(query).setMaxResults(1).getSingleResult();
@@ -330,5 +332,65 @@ public class MemberRepositoryImp implements IMemberRepository {
         } catch (NoResultException e) {
             return null;
         }
+    }
+
+    @Override
+    public PageResponse<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status, int page, int size) {
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+            CriteriaQuery<Member> query = cb.createQuery(Member.class);
+            Root<Member> root = query.from(Member.class);
+            List<Predicate> predicates = buildSearchPredicates(keyword, memberType, status, cb, root);
+            if (!predicates.isEmpty()) {
+                // that means select * from members where keyword and memberType and status
+                query.where(predicates.toArray(new Predicate[0]));
+            }
+
+            // count query
+            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+            Root<Member> countRoot = countQuery.from(Member.class);
+            List<Predicate> countPredicates = buildSearchPredicates(keyword, memberType, status, cb, countRoot);
+            countQuery.select(cb.count(countRoot));
+            if (!countPredicates.isEmpty()) {
+                countQuery.where(countPredicates.toArray(new Predicate[0]));
+            }
+
+            Long totalElements = entityManager.createQuery(countQuery).getSingleResult();
+
+            // get paginated results
+            // that means select * from members where keyword and memberType and status
+            TypedQuery<Member> typedQuery = entityManager.createQuery(query);
+            typedQuery.setFirstResult(page * size);
+            List<Member> members = typedQuery.getResultList();
+
+            return new PageResponse<>(members, page, size, totalElements);
+        } catch (Exception e) {
+            throw new RuntimeException("Error searching members: " + e.getMessage(), e);
+        }
+    }
+
+    private List<Predicate> buildSearchPredicates(String keyword, MemberType memberType, MemberStatus status, CriteriaBuilder cb, Root<Member> root) {
+        List<Predicate> predicates = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String searchKeyword = "%" + keyword.toLowerCase() + "%";
+            predicates.add(cb.or(
+                    // that means select * from members where lower(member_code) like searchKeyword
+                    cb.like(cb.lower(root.get("memberCode")), searchKeyword),
+                    cb.like(cb.lower(root.get("email")), searchKeyword),
+                    cb.like(cb.lower(root.get("fullName")), searchKeyword)
+            ));
+        }
+
+        // that means select * from members where member_type = memberType
+        if (memberType != null) {
+            predicates.add(cb.equal(root.get("memberType"), memberType));
+        }
+
+        if (status != null) {
+            predicates.add(cb.equal(root.get("status"), status));
+        }
+
+        return predicates;
     }
 }

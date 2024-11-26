@@ -73,17 +73,8 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td colspan="8">
-                <c:if test="${empty books}">
-                    Books is empty
-                </c:if>
-                <c:if test="${not empty books}">
-                    Number of books: ${books.size()}
-                </c:if>
-            </td>
-        </tr>
-        <c:forEach items="${books}" var="book">
+
+        <c:forEach items="${books.content}" var="book">
             <tr>
                 <td>
                     <div class="avatar">
@@ -147,12 +138,32 @@
 </div>
 
 <!-- Pagination -->
+<!-- Pagination -->
 <div class="flex justify-center mt-4">
     <div class="btn-group">
-        <c:forEach begin="1" end="${totalPages}" var="page">
-            <a href="?page=${page}&keyword=${param.keyword}&category=${param.category}&status=${param.status}"
-               class="btn ${currentPage == page ? 'btn-active' : ''}">${page}</a>
+        <!-- First page -->
+        <a href="?page=0&keyword=${param.keyword}&category=${param.category}&status=${param.status}" 
+           class="btn ${books.pageNumber == 0 ? 'btn-disabled' : ''}">&laquo;</a>
+        
+        <!-- Previous page -->
+        <a href="?page=${books.pageNumber - 1}&keyword=${param.keyword}&category=${param.category}&status=${param.status}" 
+           class="btn ${books.pageNumber == 0 ? 'btn-disabled' : ''}">&lsaquo;</a>
+        
+        <!-- Page numbers -->
+        <c:forEach begin="${Math.max(0, books.pageNumber - 2)}" 
+                   end="${Math.min(books.totalPages - 1, books.pageNumber + 2)}" 
+                   var="i">
+            <a href="?page=${i}&keyword=${param.keyword}&category=${param.category}&status=${param.status}"
+               class="btn ${books.pageNumber == i ? 'btn-active' : ''}">${i + 1}</a>
         </c:forEach>
+        
+        <!-- Next page -->
+        <a href="?page=${books.pageNumber + 1}&keyword=${param.keyword}&category=${param.category}&status=${param.status}" 
+           class="btn ${books.pageNumber >= books.totalPages - 1 ? 'btn-disabled' : ''}">&rsaquo;</a>
+        
+        <!-- Last page -->
+        <a href="?page=${books.totalPages - 1}&keyword=${param.keyword}&category=${param.category}&status=${param.status}" 
+           class="btn ${books.pageNumber >= books.totalPages - 1 ? 'btn-disabled' : ''}">&raquo;</a>
     </div>
 </div>
 

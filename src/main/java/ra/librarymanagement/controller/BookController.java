@@ -7,6 +7,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import paging.PageResponse;
+import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.book.BookStatus;
 import ra.librarymanagement.service.IBookService;
@@ -40,17 +43,12 @@ public class BookController {
 
     @GetMapping
     @Transactional
-    public String index(Model model) {
-        List<Book> books = bookService.findAll();
-//        System.out.println("Books: " + books);
-//
-//        for (Book book : books) {
-//            System.out.println("Book detail: " +
-//                    "ID=" + book.getBookId() +
-//                    ", Title=" + book.getTitle() +
-//                    ", ISBN=" + book.getIsbn() +
-//                    ", Status=" + book.getBookStatus());
-//        }
+    public String index(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+        PageResponse<Book> books = bookService.searchBooks(null, null, null, page, size);
+
         model.addAttribute("books", books);
         model.addAttribute("categories", getBookCategories());
         model.addAttribute("statuses", BookStatus.values());
@@ -106,7 +104,7 @@ public class BookController {
 
             if (!file.isEmpty() && file != null) {
 
-                if(existingBook.getCoverImage() != null){
+                if (existingBook.getCoverImage() != null) {
                     FileUploadUtil.deleteFile(existingBook.getCoverImage());
                 }
 
@@ -139,21 +137,22 @@ public class BookController {
 
     @GetMapping("/search")
     public String search(@RequestParam(required = false) String keyword,
-                         @RequestParam(required = false) String category,
                          @RequestParam(required = false) BookStatus status,
+                         @RequestParam(required = false) String category,
+                         @RequestParam(defaultValue = "0") int page,
+                         @RequestParam(defaultValue = "10") int size,
                          Model model) {
-        List<Book> books;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            books = bookService.findByTitleContaining(keyword);
-        } else if (category != null && !category.trim().isEmpty()) {
-            books = bookService.findByCategory(category);
-        } else if (status != null) {
-            books = bookService.findByStatus(status);
-        } else {
-            books = bookService.findAll();
-        }
+        PageResponse<Book> books = bookService.searchBooks(
+                keyword != null ? keyword.trim() : null,
+                status,
+                category != null ? category.trim() : null,
+                page,
+                size
+        );
 
         model.addAttribute("books", books);
+        model.addAttribute("currentPage", books.getPageNumber());
+        model.addAttribute("totalPages", books.getTotalPages());
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedStatus", status);

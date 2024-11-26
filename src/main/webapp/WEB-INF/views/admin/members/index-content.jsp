@@ -74,7 +74,7 @@
         </tr>
         </thead>
         <tbody>
-        <c:forEach items="${members}" var="member">
+        <c:forEach items="${members.content}" var="member">
             <tr>
                 <td>
                     <div class="avatar">
@@ -192,6 +192,39 @@
         </c:forEach>
         </tbody>
     </table>
+</div>
+
+
+<!-- Pagination -->
+<div class="flex justify-center mt-4">
+    <div class="btn-group">
+        <%--        First page--%>
+        <a href="?page=0&keyword=${param.keyword}&memberType=${param.memberType}&status=${param.status}"
+           class="btn ${members.pageNumber == 0 ? "btn-disabled": ""}">&laquo;</a>
+
+        <%--        Previous page--%>
+        <a href="?page=${members.pageNumber -1}&keyword=${param.keyword}&memberType=${param.memberType}&status=${param.status}"
+           class="btn ${members.pageNumber == 0 ? "btn-disabled": ""}">&lsaquo;</a>
+
+        <%--        Page numbers --%>
+        <c:forEach begin="${Math.max(0, members.pageNumber - 2)}"
+                   end="${Math.min(members.totalPages - 1, members.pageNumber + 2)}"
+                   var="i"
+        >
+            <a href="?page=${i}&keyword=${param.keyword}&memberType=${param.memberType}&status=${param.status}"
+               class="btn ${members.pageNumber  == i ? "btn-active" : ""}">${i + 1}</a>
+
+
+        </c:forEach>
+
+        <%--        Next page--%>
+        <a href="?page=${members.pageNumber + 1}&keyword=${param.keyword}&memberType=${param.memberType}&status=${param.status}"
+           class="btn ${members.pageNumber == members.totalPages - 1 ? "btn-disabled": ""}">&rsaquo;</a>
+
+        <%--        Last page--%>
+        <a href="?page=${members.totalPages -1}&keyword=${param.keyword}&memberType=${param.memberType}&status=${param.status}"
+           class="btn ${members.pageNumber >= members.totalPages - 1 ? "btn-disabled": ""}">&raquo;</a>
+    </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
