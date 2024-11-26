@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/borrows")
@@ -37,7 +38,7 @@ public class BorrowRecordController {
     private final IBorrowRecordService borrowRecordService;
     private final IBookService bookService;
     private final IMemberService memberService;
-
+    
     private static final Logger logger = LoggerFactory.getLogger(BorrowRecordRepositoryImp.class);
 
     @Autowired
@@ -69,7 +70,7 @@ public class BorrowRecordController {
     @GetMapping("/add")
     public String showAddForm(Model model) {
 
-        List<Member> members = memberService.findAll();
+        List<Member> activeMembers = memberService.findActiveMembers();
         List<Book> availableBooks = bookService.findAvailableBooks();
 
         // availableBooks.forEach(book -> {
@@ -82,16 +83,13 @@ public class BorrowRecordController {
         //     System.out.println("-------------------");
         // });
 
-        Map<Long, Long> memberActiveBorrows = new HashMap<>();
-        for (Member member : members) {
-            long activeBorrows = borrowRecordService.countActiveBooksByMember(member.getMemberId());
-            memberActiveBorrows.put(member.getMemberId(), activeBorrows);
-        }
+        Map<Long, Long> memberActiveBorrows = borrowRecordService.getActiveBorrowsCountByMembers(activeMembers.stream().map(Member::getMemberId).collect(Collectors.toList()));
 
 
         model.addAttribute("borrow", new BorrowRecord());
         model.addAttribute("books", availableBooks);
-        model.addAttribute("members", members);
+        model.addAttribute("members", activeMembers);
+        model.addAttribute("memberActiveBorrows", memberActiveBorrows);
 
         model.addAttribute("maxBorrowDays", LibraryConstants.DEFAULT_BORROW_DAYS);
         model.addAttribute("lateFeePerDay", LibraryConstants.DAILY_FINE);
@@ -99,7 +97,7 @@ public class BorrowRecordController {
         model.addAttribute("regularMaxBooks", LibraryConstants.REGULAR_MEMBER_MAX_BOOKS);
         model.addAttribute("vipMaxBooks", LibraryConstants.VIP_MEMBER_MAX_BOOKS);
         model.addAttribute("studentMaxBooks", LibraryConstants.STUDENT_MEMBER_MAX_BOOKS);
-        model.addAttribute("memberActiveBorrows", memberActiveBorrows);
+        // model.addAttribute("memberActiveBorrows", memberActiveBorrows);
         return "admin/borrows/form";
     }
 
@@ -163,6 +161,7 @@ public class BorrowRecordController {
     }
 
     @GetMapping("/search")
+    @Transactional(readOnly = true)
     public String search(
             @RequestParam(required = false) String memberSearch,
             @RequestParam(required = false) BorrowStatus status,
@@ -173,6 +172,11 @@ public class BorrowRecordController {
             Model model) {
         PageResponse<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(
                 memberSearch, status, startDate, endDate, page, size);
+
+        borrows.getContent().forEach(borrow -> {
+            Hibernate.initialize(borrow.getMember());
+            Hibernate.initialize(borrow.getBook());
+        });
 
         model.addAttribute("borrows", borrows);
         model.addAttribute("statuses", BorrowStatus.values());

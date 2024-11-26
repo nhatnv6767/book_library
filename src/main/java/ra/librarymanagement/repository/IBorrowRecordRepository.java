@@ -58,4 +58,6 @@ public interface IBorrowRecordRepository {
 
     PageResponse<BorrowRecord> searchBorrowRecords(String memberSearch, BorrowStatus status, 
         LocalDateTime startDate, LocalDateTime endDate, int page, int size);
+
+    Map<Long, Long> getActiveBorrowsCountByMembers(List<Long> memberIds);
 }

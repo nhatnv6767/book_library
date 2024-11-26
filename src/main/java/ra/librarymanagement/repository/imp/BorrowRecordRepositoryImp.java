@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -624,5 +625,37 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
         }
 
         return predicates;
+    }
+
+    @Override
+    public Map<Long, Long> getActiveBorrowsCountByMembers(List<Long> memberIds) {
+        try {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<BorrowRecord> root = query.from(BorrowRecord.class);
+        
+        query.multiselect(
+            root.get("member").get("memberId"),
+            cb.count(root)
+        );
+        
+        query.where(
+            cb.and(
+                root.get("member").get("memberId").in(memberIds),
+                root.get("status").in(BorrowStatus.BORROWING)
+            )
+        );
+        
+        query.groupBy(root.get("member").get("memberId"));
+        
+        Map<Long, Long> result = new HashMap<>();
+        entityManager.createQuery(query)
+            .getResultList()
+            .forEach(row -> result.put((Long)row[0], (Long)row[1]));
+            
+        return result;
+    } catch (Exception e) {
+        throw new RuntimeException("Error getting active borrows count", e);
+    }
     }
 }

@@ -206,5 +206,11 @@ public class MemberServiceImp implements IMemberService {
         return String.format("%s%07d", LibraryConstants.MEMBER_CODE_PREFIX, lastNumber + 1);
     }
 
+    @Override
+    public List<Member> findActiveMembers() {
+        // TODO Auto-generated method stub
+        return memberRepository.findActiveMembers();
+    }
+
 
 }

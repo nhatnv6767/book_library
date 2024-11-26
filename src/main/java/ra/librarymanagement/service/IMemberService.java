@@ -45,4 +45,7 @@ public interface IMemberService {
 
     PageResponse<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status, int page, int size);
 
+    List<Member> findActiveMembers();
+
+    
 }

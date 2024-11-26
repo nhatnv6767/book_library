@@ -304,4 +304,9 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
         // TODO Auto-generated method stub
         return borrowRecordRepository.searchBorrowRecords(memberSearch, status, startDate, endDate, page, size);
     }
+
+    @Override
+    public Map<Long, Long> getActiveBorrowsCountByMembers(List<Long> memberIds) {
+        return borrowRecordRepository.getActiveBorrowsCountByMembers(memberIds);
+    }
 }

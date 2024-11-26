@@ -48,4 +48,5 @@ public interface IMemberRepository {
     String getLastMemberCode();
 
     PageResponse<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status, int page, int size);
+
 }
