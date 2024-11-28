@@ -11,7 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import paging.PageResponse;
+import ra.librarymanagement.paging.PageResponse;
 import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
@@ -21,12 +21,10 @@ import ra.librarymanagement.repository.imp.BorrowRecordRepositoryImp;
 import ra.librarymanagement.service.IBookService;
 import ra.librarymanagement.service.IBorrowRecordService;
 import ra.librarymanagement.service.IMemberService;
-import ra.librarymanagement.service.imp.BorrowRecordServiceImp;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +36,7 @@ public class BorrowRecordController {
     private final IBorrowRecordService borrowRecordService;
     private final IBookService bookService;
     private final IMemberService memberService;
-    
+
     private static final Logger logger = LoggerFactory.getLogger(BorrowRecordRepositoryImp.class);
 
     @Autowired

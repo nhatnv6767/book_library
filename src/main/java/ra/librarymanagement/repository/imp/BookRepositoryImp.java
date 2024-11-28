@@ -3,7 +3,7 @@ package ra.librarymanagement.repository.imp;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import paging.PageResponse;
+import ra.librarymanagement.paging.PageResponse;
 import ra.librarymanagement.model.book.Book;
 import ra.librarymanagement.model.book.BookStatus;
 import ra.librarymanagement.repository.IBookRepository;
@@ -222,7 +222,7 @@ public class BookRepositoryImp implements IBookRepository {
         // TODO Auto-generated method stub
         try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-            
+
             // Main query
             CriteriaQuery<Book> query = cb.createQuery(Book.class);
             Root<Book> root = query.from(Book.class);
@@ -230,7 +230,7 @@ public class BookRepositoryImp implements IBookRepository {
             if (!predicates.isEmpty()) {
                 query.where(predicates.toArray(new Predicate[0]));
             }
-            
+
             // Count query - sử dụng cùng predicates nhưng với root mới
             CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
             Root<Book> countRoot = countQuery.from(Book.class);
@@ -240,13 +240,13 @@ public class BookRepositoryImp implements IBookRepository {
                 countQuery.where(countPredicates.toArray(new Predicate[0]));
             }
             Long totalElements = entityManager.createQuery(countQuery).getSingleResult();
-            
+
             // Get paginated results
             TypedQuery<Book> typedQuery = entityManager.createQuery(query);
             typedQuery.setFirstResult(page * size);
             typedQuery.setMaxResults(size);
             List<Book> books = typedQuery.getResultList();
-            
+
             return new PageResponse<>(books, page, size, totalElements);
         } catch (Exception e) {
             throw new RuntimeException("Error searching books: " + e.getMessage());
@@ -267,7 +267,7 @@ public class BookRepositoryImp implements IBookRepository {
                     cb.like(cb.lower(root.get("isbn")), searchKeyword)
             ));
         }
-    
+
         // Filter by status
         if (status != null) {
             predicates.add(cb.equal(root.get("bookStatus"), status));

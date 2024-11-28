@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import paging.PageResponse;
+import ra.librarymanagement.paging.PageResponse;
 
 public interface IBorrowRecordService {
     List<BorrowRecord> findAll();
@@ -64,9 +64,9 @@ public interface IBorrowRecordService {
 
     Optional<BorrowRecord> findByIdWithMember(Long id);
 
-    PageResponse<BorrowRecord> searchBorrowRecords(String memberSearch, BorrowStatus status, 
-        LocalDateTime startDate, LocalDateTime endDate, int page, int size);
+    PageResponse<BorrowRecord> searchBorrowRecords(String memberSearch, BorrowStatus status,
+                                                   LocalDateTime startDate, LocalDateTime endDate, int page, int size);
 
-        Map<Long, Long> getActiveBorrowsCountByMembers(List<Long> memberIds);
+    Map<Long, Long> getActiveBorrowsCountByMembers(List<Long> memberIds);
 
 }

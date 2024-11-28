@@ -3,7 +3,7 @@ package ra.librarymanagement.repository.imp;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import paging.PageResponse;
+import ra.librarymanagement.paging.PageResponse;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.book.Book;
@@ -630,32 +630,32 @@ public class BorrowRecordRepositoryImp implements IBorrowRecordRepository {
     @Override
     public Map<Long, Long> getActiveBorrowsCountByMembers(List<Long> memberIds) {
         try {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
-        Root<BorrowRecord> root = query.from(BorrowRecord.class);
-        
-        query.multiselect(
-            root.get("member").get("memberId"),
-            cb.count(root)
-        );
-        
-        query.where(
-            cb.and(
-                root.get("member").get("memberId").in(memberIds),
-                root.get("status").in(BorrowStatus.BORROWING)
-            )
-        );
-        
-        query.groupBy(root.get("member").get("memberId"));
-        
-        Map<Long, Long> result = new HashMap<>();
-        entityManager.createQuery(query)
-            .getResultList()
-            .forEach(row -> result.put((Long)row[0], (Long)row[1]));
-            
-        return result;
-    } catch (Exception e) {
-        throw new RuntimeException("Error getting active borrows count", e);
-    }
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+            Root<BorrowRecord> root = query.from(BorrowRecord.class);
+
+            query.multiselect(
+                    root.get("member").get("memberId"),
+                    cb.count(root)
+            );
+
+            query.where(
+                    cb.and(
+                            root.get("member").get("memberId").in(memberIds),
+                            root.get("status").in(BorrowStatus.BORROWING)
+                    )
+            );
+
+            query.groupBy(root.get("member").get("memberId"));
+
+            Map<Long, Long> result = new HashMap<>();
+            entityManager.createQuery(query)
+                    .getResultList()
+                    .forEach(row -> result.put((Long) row[0], (Long) row[1]));
+
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting active borrows count", e);
+        }
     }
 }
