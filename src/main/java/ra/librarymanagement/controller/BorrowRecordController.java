@@ -1,6 +1,7 @@
 package ra.librarymanagement.controller;
 
 import org.hibernate.Hibernate;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +37,16 @@ public class BorrowRecordController {
     private final IBorrowRecordService borrowRecordService;
     private final IBookService bookService;
     private final IMemberService memberService;
+    private final ModelMapper modelMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(BorrowRecordRepositoryImp.class);
 
     @Autowired
-    public BorrowRecordController(IBorrowRecordService borrowRecordService, IBookService bookService, IMemberService memberService) {
+    public BorrowRecordController(IBorrowRecordService borrowRecordService, IBookService bookService, IMemberService memberService, ModelMapper modelMapper) {
         this.borrowRecordService = borrowRecordService;
         this.bookService = bookService;
         this.memberService = memberService;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping
