@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import paging.PageResponse;
+import ra.librarymanagement.paging.PageResponse;
 import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
@@ -204,6 +204,12 @@ public class MemberServiceImp implements IMemberService {
         }
 
         return String.format("%s%07d", LibraryConstants.MEMBER_CODE_PREFIX, lastNumber + 1);
+    }
+
+    @Override
+    public List<Member> findActiveMembers() {
+        // TODO Auto-generated method stub
+        return memberRepository.findActiveMembers();
     }
 
 

@@ -2,7 +2,7 @@ package ra.librarymanagement.repository.imp;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import paging.PageResponse;
+import ra.librarymanagement.paging.PageResponse;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
 import ra.librarymanagement.model.member.Member;
@@ -347,6 +347,8 @@ public class MemberRepositoryImp implements IMemberRepository {
                 query.where(predicates.toArray(new Predicate[0]));
             }
 
+            query.orderBy(cb.asc(root.get("memberCode")));
+
             // count query
             CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
             Root<Member> countRoot = countQuery.from(Member.class);
@@ -362,6 +364,7 @@ public class MemberRepositoryImp implements IMemberRepository {
             // that means select * from members where keyword and memberType and status
             TypedQuery<Member> typedQuery = entityManager.createQuery(query);
             typedQuery.setFirstResult(page * size);
+            typedQuery.setMaxResults(size);
             List<Member> members = typedQuery.getResultList();
 
             return new PageResponse<>(members, page, size, totalElements);

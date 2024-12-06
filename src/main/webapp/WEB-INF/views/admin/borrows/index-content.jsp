@@ -80,7 +80,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <c:forEach items="${borrows}" var="borrow">
+                <c:forEach items="${borrows.content}" var="borrow">
                     <tr>
                         <td>${borrow.borrowId}</td>
                         <td>
@@ -189,6 +189,37 @@
         </c:when>
     </c:choose>
 </div>
+
+<!-- Pagination -->
+<c:if test="${borrows.totalPages > 0}">
+    <div class="flex justify-center mt-4">
+        <div class="btn-group">
+            <!-- First page -->
+            <a href="?page=0&memberSearch=${param.memberSearch}&status=${param.status}&startDate=${param.startDate}&endDate=${param.endDate}" 
+               class="btn ${borrows.pageNumber == 0 ? 'btn-disabled' : ''}">&laquo;</a>
+            
+            <!-- Previous page -->
+            <a href="?page=${borrows.pageNumber - 1}&memberSearch=${param.memberSearch}&status=${param.status}&startDate=${param.startDate}&endDate=${param.endDate}" 
+               class="btn ${borrows.pageNumber == 0 ? 'btn-disabled' : ''}">&lsaquo;</a>
+            
+            <!-- Page numbers -->
+            <c:forEach begin="0" end="${borrows.totalPages - 1}" var="i">
+                <c:if test="${i >= borrows.pageNumber - 2 && i <= borrows.pageNumber + 2}">
+                    <a href="?page=${i}&memberSearch=${param.memberSearch}&status=${param.status}&startDate=${param.startDate}&endDate=${param.endDate}"
+                       class="btn ${borrows.pageNumber == i ? 'btn-active' : ''}">${i + 1}</a>
+                </c:if>
+            </c:forEach>
+            
+            <!-- Next page -->
+            <a href="?page=${borrows.pageNumber + 1}&memberSearch=${param.memberSearch}&status=${param.status}&startDate=${param.startDate}&endDate=${param.endDate}" 
+               class="btn ${borrows.pageNumber >= borrows.totalPages - 1 ? 'btn-disabled' : ''}">&rsaquo;</a>
+            
+            <!-- Last page -->
+            <a href="?page=${borrows.totalPages - 1}&memberSearch=${param.memberSearch}&status=${param.status}&startDate=${param.startDate}&endDate=${param.endDate}" 
+               class="btn ${borrows.pageNumber >= borrows.totalPages - 1 ? 'btn-disabled' : ''}">&raquo;</a>
+        </div>
+    </div>
+</c:if>
 
 
 <!-- Return Book Modal -->

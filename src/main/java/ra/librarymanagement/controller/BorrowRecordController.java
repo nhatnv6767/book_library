@@ -1,6 +1,7 @@
 package ra.librarymanagement.controller;
 
 import org.hibernate.Hibernate;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import ra.librarymanagement.paging.PageResponse;
 import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
@@ -19,15 +22,14 @@ import ra.librarymanagement.repository.imp.BorrowRecordRepositoryImp;
 import ra.librarymanagement.service.IBookService;
 import ra.librarymanagement.service.IBorrowRecordService;
 import ra.librarymanagement.service.IMemberService;
-import ra.librarymanagement.service.imp.BorrowRecordServiceImp;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/borrows")
@@ -35,19 +37,33 @@ public class BorrowRecordController {
     private final IBorrowRecordService borrowRecordService;
     private final IBookService bookService;
     private final IMemberService memberService;
+    private final ModelMapper modelMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(BorrowRecordRepositoryImp.class);
 
     @Autowired
-    public BorrowRecordController(IBorrowRecordService borrowRecordService, IBookService bookService, IMemberService memberService) {
+    public BorrowRecordController(IBorrowRecordService borrowRecordService, IBookService bookService, IMemberService memberService, ModelMapper modelMapper) {
         this.borrowRecordService = borrowRecordService;
         this.bookService = bookService;
         this.memberService = memberService;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping
-    public String index(Model model) {
-        model.addAttribute("borrows", borrowRecordService.findAll());
+    @Transactional(readOnly = true)
+    public String index(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+        PageResponse<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(
+                null, null, null, null, page, size);
+
+        borrows.getContent().forEach(borrow -> {
+            Hibernate.initialize(borrow.getMember());
+            Hibernate.initialize(borrow.getBook());
+        });
+
+        model.addAttribute("borrows", borrows);
         model.addAttribute("statuses", BorrowStatus.values());
         return "admin/borrows/index";
     }
@@ -55,7 +71,7 @@ public class BorrowRecordController {
     @GetMapping("/add")
     public String showAddForm(Model model) {
 
-        List<Member> members = memberService.findAll();
+        List<Member> activeMembers = memberService.findActiveMembers();
         List<Book> availableBooks = bookService.findAvailableBooks();
 
         // availableBooks.forEach(book -> {
@@ -68,16 +84,13 @@ public class BorrowRecordController {
         //     System.out.println("-------------------");
         // });
 
-        Map<Long, Long> memberActiveBorrows = new HashMap<>();
-        for (Member member : members) {
-            long activeBorrows = borrowRecordService.countActiveBooksByMember(member.getMemberId());
-            memberActiveBorrows.put(member.getMemberId(), activeBorrows);
-        }
+        Map<Long, Long> memberActiveBorrows = borrowRecordService.getActiveBorrowsCountByMembers(activeMembers.stream().map(Member::getMemberId).collect(Collectors.toList()));
 
 
         model.addAttribute("borrow", new BorrowRecord());
         model.addAttribute("books", availableBooks);
-        model.addAttribute("members", members);
+        model.addAttribute("members", activeMembers);
+        model.addAttribute("memberActiveBorrows", memberActiveBorrows);
 
         model.addAttribute("maxBorrowDays", LibraryConstants.DEFAULT_BORROW_DAYS);
         model.addAttribute("lateFeePerDay", LibraryConstants.DAILY_FINE);
@@ -85,7 +98,7 @@ public class BorrowRecordController {
         model.addAttribute("regularMaxBooks", LibraryConstants.REGULAR_MEMBER_MAX_BOOKS);
         model.addAttribute("vipMaxBooks", LibraryConstants.VIP_MEMBER_MAX_BOOKS);
         model.addAttribute("studentMaxBooks", LibraryConstants.STUDENT_MEMBER_MAX_BOOKS);
-        model.addAttribute("memberActiveBorrows", memberActiveBorrows);
+        // model.addAttribute("memberActiveBorrows", memberActiveBorrows);
         return "admin/borrows/form";
     }
 
@@ -149,15 +162,22 @@ public class BorrowRecordController {
     }
 
     @GetMapping("/search")
-    public String search(@RequestParam(required = false) String memberSearch,
-                         @RequestParam(required = false) BorrowStatus status,
-                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-                         Model model) {
-        List<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(memberSearch, status, startDate, endDate);
-        // borrows.forEach(borrow -> {
-        //     Hibernate.initialize(borrow.getMember());
-        // });
+    @Transactional(readOnly = true)
+    public String search(
+            @RequestParam(required = false) String memberSearch,
+            @RequestParam(required = false) BorrowStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
+        PageResponse<BorrowRecord> borrows = borrowRecordService.searchBorrowRecords(
+                memberSearch, status, startDate, endDate, page, size);
+
+        borrows.getContent().forEach(borrow -> {
+            Hibernate.initialize(borrow.getMember());
+            Hibernate.initialize(borrow.getBook());
+        });
 
         model.addAttribute("borrows", borrows);
         model.addAttribute("statuses", BorrowStatus.values());

@@ -1,6 +1,6 @@
 package ra.librarymanagement.repository;
 
-import paging.PageResponse;
+import ra.librarymanagement.paging.PageResponse;
 import ra.librarymanagement.model.member.Member;
 import ra.librarymanagement.model.member.MemberStatus;
 import ra.librarymanagement.model.member.MemberType;
@@ -48,4 +48,5 @@ public interface IMemberRepository {
     String getLastMemberCode();
 
     PageResponse<Member> searchMembers(String keyword, MemberType memberType, MemberStatus status, int page, int size);
+
 }

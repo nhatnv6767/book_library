@@ -4,6 +4,8 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import ra.librarymanagement.paging.PageResponse;
 import ra.librarymanagement.constants.LibraryConstants;
 import ra.librarymanagement.model.BorrowRecord.BorrowRecord;
 import ra.librarymanagement.model.BorrowRecord.BorrowStatus;
@@ -20,7 +22,6 @@ import ra.librarymanagement.service.IMemberService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -294,5 +295,17 @@ public class BorrowRecordServiceImp implements IBorrowRecordService {
     @Override
     public Optional<BorrowRecord> findByIdWithMember(Long id) {
         return borrowRecordRepository.findByIdWithMember(id);
+    }
+
+    @Override
+    public PageResponse<BorrowRecord> searchBorrowRecords(String memberSearch, BorrowStatus status,
+                                                          LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
+        // TODO Auto-generated method stub
+        return borrowRecordRepository.searchBorrowRecords(memberSearch, status, startDate, endDate, page, size);
+    }
+
+    @Override
+    public Map<Long, Long> getActiveBorrowsCountByMembers(List<Long> memberIds) {
+        return borrowRecordRepository.getActiveBorrowsCountByMembers(memberIds);
     }
 }
